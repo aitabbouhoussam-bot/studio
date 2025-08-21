@@ -10,7 +10,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Icons } from "@/components/icons";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -26,6 +25,8 @@ import {
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { signInWithEmailAndPasswordAction, signUpWithEmailAndPassword } from "@/lib/auth-actions";
+import { useToast } from "@/hooks/use-toast";
 
 interface AuthFormProps {
   mode: "login" | "signup";
@@ -41,6 +42,7 @@ const formSchema = z.object({
 export function AuthForm({ mode }: AuthFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -52,10 +54,25 @@ export function AuthForm({ mode }: AuthFormProps) {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
-    // Mock API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    
+    const action = mode === 'signup' ? signUpWithEmailAndPassword : signInWithEmailAndPasswordAction;
+    const result = await action(values);
+
     setIsLoading(false);
-    router.push("/dashboard");
+
+    if (result.success) {
+      toast({
+        title: mode === 'signup' ? "Account Created!" : "Signed In!",
+        description: mode === 'signup' ? "Welcome to MealGenius." : "Welcome back!",
+      });
+      router.push("/dashboard");
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Authentication Failed",
+        description: result.error || "An unknown error occurred.",
+      });
+    }
   };
 
   const isLogin = mode === "login";
