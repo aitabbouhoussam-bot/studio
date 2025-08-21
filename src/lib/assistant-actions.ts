@@ -14,15 +14,14 @@ export async function chatWithAssistant(
 ): Promise<{ success: boolean; data?: ChatOutput; error?: string }> {
   "use server";
   try {
-    // The role in our component is 'assistant', but the model expects 'model'
-    // We map this before validation and sending to the flow.
-    const mappedMessages = messages.map(m => ({
+    // The role in our component is 'assistant', but the model expects 'model' or 'assistant'
+    // The first message is the intro prompt which we don't want to include in history.
+    const conversationHistory = messages.slice(1).map(m => ({
         ...m,
-        // The first message is a system prompt, let's keep it as assistant
         role: m.role === 'assistant' ? 'assistant' : 'user'
     }));
 
-    const validatedInput = ChatInputSchema.parse({ messages: mappedMessages });
+    const validatedInput = ChatInputSchema.parse({ messages: conversationHistory });
     
     const result = await chefAssistant(validatedInput);
 

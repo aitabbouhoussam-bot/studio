@@ -33,7 +33,7 @@ export interface Message {
 export function AiChefAssistant({ isOpen, onClose }: AiChefAssistantProps) {
     const { toast } = useToast();
     const [messages, setMessages] = useState<Message[]>([
-        { role: 'assistant', content: "Bonjour! I am Chef G, your personal AI Chef. 🍳 How can I help you cook up something wonderful today? You can ask me for recipe ideas, substitutions, or cooking advice." }
+        { role: 'assistant', content: "Bonjour! I am Chef AI, your personal culinary guide. 🍳 What delicious creation can I help you with today? Feel free to ask me for recipes, cooking advice, or ingredient substitutions!" }
     ]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
