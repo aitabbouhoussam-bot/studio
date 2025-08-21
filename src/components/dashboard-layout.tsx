@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -22,6 +23,7 @@ import {
   LogOut,
   ChevronDown,
   Users,
+  BookOpen,
 } from "lucide-react";
 import { Icons } from "./icons";
 import { Button } from "./ui/button";
@@ -41,7 +43,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   const isActive = (path: string) => {
-    return pathname === path;
+    return pathname.startsWith(path);
   };
 
   return (
@@ -62,12 +64,25 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <SidebarMenuButton
                   href="/dashboard"
                   asChild
-                  isActive={isActive("/dashboard")}
+                  isActive={pathname === "/dashboard"}
                   tooltip="Meal Plan"
                 >
                   <Link href="/dashboard">
                     <UtensilsCrossed />
                     <span>Meal Plan</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  href="/dashboard/recipes"
+                  asChild
+                  isActive={isActive("/dashboard/recipes")}
+                  tooltip="Recipes"
+                >
+                  <Link href="/dashboard/recipes">
+                    <BookOpen />
+                    <span>Recipes</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -160,7 +175,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           <header className="flex items-center justify-between p-4 border-b">
             <SidebarTrigger />
             <h1 className="text-xl font-semibold font-headline capitalize">
-              {pathname.split("/").pop()?.replace("-", " ")}
+              {pathname.split("/").pop()?.replace("-", " ") || "Dashboard"}
             </h1>
             <div>
               {/* Placeholder for other header items */}
