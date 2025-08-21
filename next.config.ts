@@ -2,6 +2,10 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
+  experimental: {
+    // This is required for the Next.js dev server to work in this environment
+    allowedDevOrigins: ['*'],
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
