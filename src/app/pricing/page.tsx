@@ -24,7 +24,7 @@ const tiers = [
     name: "Premium",
     price: "$5.99",
     frequency: "/month",
-    description: "Unlock the full power of MealWise.",
+    description: "Unlock the full power of Feastly.",
     features: [
       "Unlimited AI meal plan generations",
       "Advanced dietary options",

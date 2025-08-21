@@ -63,7 +63,7 @@ export function AuthForm({ mode }: AuthFormProps) {
     if (result.success) {
       toast({
         title: mode === 'signup' ? "Account Created!" : "Signed In!",
-        description: mode === 'signup' ? "Welcome to MealGenius." : "Welcome back!",
+        description: mode === 'signup' ? "Welcome to Feastly." : "Welcome back!",
       });
       router.push("/dashboard");
     } else {
@@ -86,7 +86,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           </CardTitle>
           <CardDescription>
             {isLogin
-              ? "Sign in to continue to MealGenius."
+              ? "Sign in to continue to Feastly."
               : "Enter your email and password to get started."}
           </CardDescription>
         </CardHeader>

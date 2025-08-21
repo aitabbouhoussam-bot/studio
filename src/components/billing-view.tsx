@@ -65,7 +65,7 @@ export function BillingView() {
                 <h3 className="text-lg font-semibold mb-2">Current Plan</h3>
                 <div className="flex items-center justify-between rounded-md border p-4">
                     <div>
-                        <p className="font-medium">MealGenius Pro</p>
+                        <p className="font-medium">Feastly Pro</p>
                         <p className="text-sm text-muted-foreground">Billed monthly at $9.00</p>
                     </div>
                     <Button variant="outline">Manage Subscription</Button>

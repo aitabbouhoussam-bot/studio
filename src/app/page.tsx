@@ -72,7 +72,7 @@ export default function Home() {
                   Everything You Need for Effortless Meals
                 </h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  MealWise combines intelligent planning with seamless collaboration to simplify your life.
+                  Feastly combines intelligent planning with seamless collaboration to simplify your life.
                 </p>
               </div>
             </div>
@@ -114,7 +114,7 @@ export default function Home() {
       <footer className="border-t py-8">
         <div className="container px-4 md:px-6 grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="flex flex-col gap-2 col-span-2 md:col-span-1">
-                 <h3 className="font-bold text-lg font-headline">MealWise</h3>
+                 <h3 className="font-bold text-lg font-headline">Feastly</h3>
                  <p className="text-sm text-muted-foreground">Eat better, together.</p>
             </div>
              <div className="flex flex-col gap-2">
@@ -139,7 +139,7 @@ export default function Home() {
             </div>
         </div>
          <div className="container px-4 md:px-6 mt-8 text-center text-xs text-muted-foreground">
-             &copy; {new Date().getFullYear()} MealWise. All rights reserved.
+             &copy; {new Date().getFullYear()} Feastly. All rights reserved.
         </div>
       </footer>
     </div>
