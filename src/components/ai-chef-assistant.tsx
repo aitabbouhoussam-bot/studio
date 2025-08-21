@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState }from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Sheet,
   SheetContent,
@@ -17,41 +17,64 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChefHat, Send } from "lucide-react";
 import { Icons } from "./icons";
 import { cn } from "@/lib/utils";
+import { chatWithAssistant } from "@/lib/assistant-actions";
+import { useToast } from "@/hooks/use-toast";
 
 interface AiChefAssistantProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-interface Message {
-  id: string;
+export interface Message {
   role: "user" | "assistant";
   content: string;
 }
 
 export function AiChefAssistant({ isOpen, onClose }: AiChefAssistantProps) {
+    const { toast } = useToast();
     const [messages, setMessages] = useState<Message[]>([
-        { id: '1', role: 'assistant', content: "Bonjour! I am your personal AI Chef. How can I help you cook up something wonderful today? You can ask me for recipe ideas, substitutions, or cooking advice." }
+        { role: 'assistant', content: "Bonjour! I am Chef G, your personal AI Chef. 🍳 How can I help you cook up something wonderful today? You can ask me for recipe ideas, substitutions, or cooking advice." }
     ]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-    const handleSubmit = (e: React.FormEvent) => {
+
+    useEffect(() => {
+        if (scrollAreaRef.current) {
+            scrollAreaRef.current.scrollTo({
+                top: scrollAreaRef.current.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    }, [messages]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!input.trim()) return;
+        if (!input.trim() || isLoading) return;
 
-        // Mock functionality for now
-        const userMessage: Message = { id: Date.now().toString(), role: 'user', content: input };
-        setMessages(prev => [...prev, userMessage]);
+        const userMessage: Message = { role: 'user', content: input };
+        const newMessages = [...messages, userMessage];
+        setMessages(newMessages);
+        setInput("");
         setIsLoading(true);
 
-        setTimeout(() => {
-            const assistantResponse: Message = { id: (Date.now() + 1).toString(), role: 'assistant', content: `I'm still learning! You asked: "${input}". I'll be able to answer this soon.` };
+        const result = await chatWithAssistant(newMessages);
+
+        setIsLoading(false);
+
+        if (result.success && result.data) {
+            const assistantResponse: Message = { role: 'assistant', content: result.data };
             setMessages(prev => [...prev, assistantResponse]);
-            setIsLoading(false);
-        }, 1500)
-        
-        setInput("");
+        } else {
+             toast({
+                variant: "destructive",
+                title: "AI Assistant Error",
+                description: result.error || "There was a problem communicating with the chef.",
+            });
+            // remove the user message if the call fails
+            setMessages(messages);
+        }
     };
 
   return (
@@ -67,10 +90,10 @@ export function AiChefAssistant({ isOpen, onClose }: AiChefAssistantProps) {
           </SheetDescription>
         </SheetHeader>
         
-        <ScrollArea className="flex-1 my-4 -mx-6 px-6">
+        <ScrollArea className="flex-1 my-4 -mx-6 px-6" ref={scrollAreaRef}>
             <div className="space-y-6">
-                {messages.map((message) => (
-                    <div key={message.id} className={cn("flex items-start gap-3", message.role === 'user' ? "justify-end" : "")}>
+                {messages.map((message, index) => (
+                    <div key={index} className={cn("flex items-start gap-3", message.role === 'user' ? "justify-end" : "")}>
                          {message.role === 'assistant' && (
                             <Avatar className="h-8 w-8">
                                 <AvatarFallback><ChefHat /></AvatarFallback>
@@ -80,7 +103,7 @@ export function AiChefAssistant({ isOpen, onClose }: AiChefAssistantProps) {
                             "p-3 rounded-lg max-w-[80%]", 
                             message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary'
                          )}>
-                            <p className="text-sm">{message.content}</p>
+                            <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                          </div>
                          {message.role === 'user' && (
                             <Avatar className="h-8 w-8">
