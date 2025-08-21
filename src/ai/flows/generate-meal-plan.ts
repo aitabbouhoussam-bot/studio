@@ -24,10 +24,36 @@ const GenerateMealPlanInputSchema = z.object({
 });
 export type GenerateMealPlanInput = z.infer<typeof GenerateMealPlanInputSchema>;
 
+const IngredientSchema = z.object({
+  name: z.string(),
+  quantity: z.number(),
+  unit: z.string(),
+  category: z.enum(['produce', 'protein', 'dairy', 'pantry', 'frozen', 'bakery', 'beverages']),
+});
+
+const NutritionInfoSchema = z.object({
+  calories: z.number(),
+  protein: z.number().describe('in grams'),
+  carbs: z.number().describe('in grams'),
+  fat: z.number().describe('in grams'),
+});
+
+const RecipeSchema = z.object({
+  day: z.enum(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']),
+  mealType: z.enum(['breakfast', 'lunch', 'dinner', 'snack']),
+  title: z.string(),
+  description: z.string().optional(),
+  ingredients: z.array(IngredientSchema),
+  instructions: z.array(z.string()),
+  nutrition: NutritionInfoSchema,
+  prepTimeMins: z.number(),
+  cookTimeMins: z.number(),
+  difficulty: z.enum(['easy', 'medium', 'hard']),
+  tags: z.array(z.string()).optional(),
+});
+
 const GenerateMealPlanOutputSchema = z.object({
-  mealPlan: z
-    .string()
-    .describe('A 7-day meal plan, with each day including breakfast, lunch, and dinner, and the recipes for each meal.'),
+  recipes: z.array(RecipeSchema),
 });
 export type GenerateMealPlanOutput = z.infer<typeof GenerateMealPlanOutputSchema>;
 
@@ -45,13 +71,15 @@ Dietary Preferences: {{{dietaryPreferences}}}
 Allergies: {{{allergies}}}
 Calorie Intake: {{{calorieIntake}}}
 
-The meal plan should include breakfast, lunch, and dinner for each day. Provide detailed recipes and instructions for each meal, including ingredients and cooking directions.
+The meal plan should include breakfast, lunch, and dinner for each day of the week (Monday to Sunday). For each meal, provide a detailed recipe.
 
 Ensure that the meal plan is diverse, delicious, and easy to follow. Be creative and incorporate a variety of flavors and cuisines.
 
-Strictly adhere to all listed dietary restrictions and allergies.  If there is any ambiguity, err on the side of caution.
+Strictly adhere to all listed dietary restrictions and allergies. If there is any ambiguity, err on the side of caution.
 
-Output the meal plan in a human-readable format. Also include the total daily calories for each day in the plan.`,
+Output the meal plan as a JSON object that conforms to the output schema. Ensure all fields are filled, including detailed recipes, ingredients, instructions, and nutritional information for each meal.
+The 'day' field for each recipe should be one of 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'.
+The 'mealType' should be one of 'breakfast', 'lunch', or 'dinner'. You can optionally include 'snack' type meals.`,
 });
 
 const generateMealPlanFlow = ai.defineFlow(

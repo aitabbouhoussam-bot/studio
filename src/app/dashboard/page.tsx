@@ -6,6 +6,7 @@ import { useMealPlan } from "@/contexts/meal-plan-context";
 import { z } from "zod";
 import { generateMealPlanAction } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
+import type { GenerateMealPlanOutput } from "@/ai/flows/generate-meal-plan";
 
 const formSchema = z.object({
   dietaryPreferences: z.string().min(1),
@@ -19,12 +20,12 @@ export default function DashboardPage() {
 
   const handleGeneratePlan = async (data: z.infer<typeof formSchema>) => {
     setIsLoading(true);
-    setMealPlan("");
+    setMealPlan(null);
 
     const result = await generateMealPlanAction(data);
 
     if (result.success && result.data) {
-      setMealPlan(result.data);
+      setMealPlan(result.data as GenerateMealPlanOutput);
       toast({
         title: "Success!",
         description: "Your new meal plan has been generated.",

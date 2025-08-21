@@ -1,10 +1,11 @@
 "use client";
 
 import { createContext, useContext, useState, ReactNode } from "react";
+import type { GenerateMealPlanOutput } from "@/ai/flows/generate-meal-plan";
 
 interface MealPlanContextType {
-  mealPlan: string;
-  setMealPlan: (plan: string) => void;
+  mealPlan: GenerateMealPlanOutput | null;
+  setMealPlan: (plan: GenerateMealPlanOutput | null) => void;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
 }
@@ -12,7 +13,7 @@ interface MealPlanContextType {
 const MealPlanContext = createContext<MealPlanContextType | undefined>(undefined);
 
 export const MealPlanProvider = ({ children }: { children: ReactNode }) => {
-  const [mealPlan, setMealPlan] = useState<string>("");
+  const [mealPlan, setMealPlan] = useState<GenerateMealPlanOutput | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   return (

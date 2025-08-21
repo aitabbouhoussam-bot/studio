@@ -16,7 +16,7 @@ export async function generateMealPlanAction(
   try {
     const validatedInput = formSchema.parse(input);
     const result = await generateMealPlan(validatedInput);
-    return { success: true, data: result.mealPlan };
+    return { success: true, data: result };
   } catch (error) {
     console.error(error);
     if (error instanceof z.ZodError) {
