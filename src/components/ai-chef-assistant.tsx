@@ -83,7 +83,7 @@ export function AiChefAssistant({ isOpen, onClose }: AiChefAssistantProps) {
         <SheetHeader>
           <SheetTitle className="font-headline text-2xl flex items-center gap-2">
             <ChefHat className="h-6 w-6 text-primary" />
-            AI Chef Assistant
+            NOT WORK
           </SheetTitle>
           <SheetDescription>
             Your culinary companion for suggestions, substitutions, and more.
