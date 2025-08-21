@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -22,21 +23,32 @@ import {
   CardTitle,
 } from "./ui/card";
 import { Icons } from "./icons";
+import { Checkbox } from "./ui/checkbox";
+import { Slider } from "./ui/slider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+
+const dietaryOptions = ['vegetarian', 'vegan', 'keto', 'paleo', 'mediterranean'];
+const allergyOptions = ['nuts', 'dairy', 'gluten', 'shellfish', 'eggs', 'soy'];
 
 const formSchema = z.object({
-  dietaryPreferences: z.string().min(1, {
-    message: "Please enter at least one dietary preference.",
-  }),
-  allergies: z.string().default("None"),
-  calorieIntake: z.coerce
-    .number({ invalid_type_error: "Please enter a valid number." })
-    .positive({ message: "Calorie intake must be a positive number." })
-    .min(1000, { message: "Calorie intake should be at least 1000." })
-    .max(5000, { message: "Calorie intake should not exceed 5000." }),
+  dietaryRestrictions: z.array(z.string()).default([]),
+  allergies: z.array(z.string()).default([]),
+  budgetLevel: z.number().min(1).max(5).default(3),
+  dailyCalorieGoal: z.coerce.number().positive().min(1000).max(5000).default(2000),
+  defaultServings: z.coerce.number().positive().default(2),
+  // These fields are in the schema but we will use defaults for now.
+  // We can add form fields for them later.
+  maxCookingTimeMins: z.number().default(45),
+  dislikedIngredients: z.array(z.string()).default([]),
+  preferredCuisines: z.array(z.string()).default([]),
+  // Fields that were on the old form that are now part of the new schema
+  dietaryPreferences: z.string().optional(),
+  calorieIntake: z.coerce.number().positive().optional(),
 });
 
+
 interface MealPlanFormProps {
-  onSubmit: (data: z.infer<typeof formSchema>) => void;
+  onSubmit: (data: any) => void; // Using `any` to be flexible with the evolving schema
   isLoading: boolean;
 }
 
@@ -44,11 +56,27 @@ export function MealPlanForm({ onSubmit, isLoading }: MealPlanFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      dietaryPreferences: "Vegetarian",
-      allergies: "None",
-      calorieIntake: 2000,
+        dietaryRestrictions: ['vegetarian'],
+        allergies: [],
+        budgetLevel: 3,
+        dailyCalorieGoal: 2000,
+        defaultServings: 2,
+        maxCookingTimeMins: 45,
+        dislikedIngredients: [],
+        preferredCuisines: [],
     },
   });
+
+  const handleSubmit = (values: z.infer<typeof formSchema>) => {
+    // Transform the data to match the expected format of the AI flow
+    const submissionData = {
+        dietaryPreferences: values.dietaryRestrictions.join(', ') || 'None',
+        allergies: values.allergies.join(', ') || 'None',
+        calorieIntake: values.dailyCalorieGoal,
+        // you could add other values here as the AI flow evolves
+    };
+    onSubmit(submissionData);
+  }
 
   return (
     <Card>
@@ -60,62 +88,176 @@ export function MealPlanForm({ onSubmit, isLoading }: MealPlanFormProps) {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <div className="grid md:grid-cols-2 gap-8">
-              <FormField
-                control={form.control}
-                name="dietaryPreferences"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Dietary Preferences</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="e.g., Vegetarian, Vegan, Keto"
-                        {...field}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Separate multiple preferences with commas.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="allergies"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Allergies</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="e.g., Peanuts, Dairy, Soy"
-                        {...field}
-                         disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      List any allergies, separated by commas.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+            
             <FormField
               control={form.control}
-              name="calorieIntake"
-              render={({ field }) => (
+              name="dietaryRestrictions"
+              render={() => (
                 <FormItem>
-                  <FormLabel>Desired Daily Calorie Intake</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g., 2000" {...field} disabled={isLoading} />
-                  </FormControl>
+                  <div className="mb-4">
+                    <FormLabel className="text-base">Dietary Preferences</FormLabel>
+                    <FormDescription>
+                      Select any dietary protocols you follow.
+                    </FormDescription>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {dietaryOptions.map((item) => (
+                    <FormField
+                      key={item}
+                      control={form.control}
+                      name="dietaryRestrictions"
+                      render={({ field }) => {
+                        return (
+                          <FormItem
+                            key={item}
+                            className="flex flex-row items-start space-x-3 space-y-0"
+                          >
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value?.includes(item)}
+                                onCheckedChange={(checked) => {
+                                  return checked
+                                    ? field.onChange([...field.value, item])
+                                    : field.onChange(
+                                        field.value?.filter(
+                                          (value) => value !== item
+                                        )
+                                      )
+                                }}
+                              />
+                            </FormControl>
+                            <FormLabel className="font-normal capitalize">
+                              {item}
+                            </FormLabel>
+                          </FormItem>
+                        )
+                      }}
+                    />
+                  ))}
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="allergies"
+              render={() => (
+                <FormItem>
+                  <div className="mb-4">
+                    <FormLabel className="text-base">Allergies & Intolerances</FormLabel>
+                     <FormDescription>
+                      Select any ingredients you need to avoid completely.
+                    </FormDescription>
+                  </div>
+                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {allergyOptions.map((item) => (
+                    <FormField
+                      key={item}
+                      control={form.control}
+                      name="allergies"
+                      render={({ field }) => {
+                        return (
+                          <FormItem
+                            key={item}
+                            className="flex flex-row items-start space-x-3 space-y-0"
+                          >
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value?.includes(item)}
+                                onCheckedChange={(checked) => {
+                                  return checked
+                                    ? field.onChange([...field.value, item])
+                                    : field.onChange(
+                                        field.value?.filter(
+                                          (value) => value !== item
+                                        )
+                                      )
+                                }}
+                              />
+                            </FormControl>
+                            <FormLabel className="font-normal capitalize">
+                              {item}
+                            </FormLabel>
+                          </FormItem>
+                        )
+                      }}
+                    />
+                  ))}
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <div className="grid md:grid-cols-2 gap-8">
+                <FormField
+                control={form.control}
+                name="dailyCalorieGoal"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Daily Calorie Goal</FormLabel>
+                    <FormControl>
+                        <Input type="number" placeholder="e.g., 2000" {...field} disabled={isLoading} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="defaultServings"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Number of Servings</FormLabel>
+                        <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={String(field.value)}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select number of servings" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                {[1,2,3,4,5,6].map(i => <SelectItem key={i} value={String(i)}>{i} person{i > 1 ? 's' : ''}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="budgetLevel"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Budget Level</FormLabel>
+                   <FormControl>
+                     <Controller
+                        name="budgetLevel"
+                        control={form.control}
+                        render={({ field: { onChange, value }}) => (
+                            <Slider
+                                min={1}
+                                max={5}
+                                step={1}
+                                defaultValue={[value]}
+                                onValueChange={(vals) => onChange(vals[0])}
+                            />
+                        )}
+                        />
+                  </FormControl>
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Budget-friendly</span>
+                    <span>Premium ingredients</span>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
             <Button type="submit" size="lg" disabled={isLoading}>
               {isLoading && (
                 <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
@@ -128,3 +270,5 @@ export function MealPlanForm({ onSubmit, isLoading }: MealPlanFormProps) {
     </Card>
   );
 }
+
+    
