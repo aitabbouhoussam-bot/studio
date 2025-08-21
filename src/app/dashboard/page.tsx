@@ -1,7 +1,9 @@
+
 "use client";
 
 import { MealPlanForm } from "@/components/meal-plan-form";
 import { MealPlanDisplay } from "@/components/meal-plan-display";
+import { StatCards } from "@/components/dashboard/stat-cards";
 import { useMealPlan } from "@/contexts/meal-plan-context";
 import { z } from "zod";
 import { generateMealPlanAction } from "@/lib/actions";
@@ -42,6 +44,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
+      <StatCards mealPlan={mealPlan} />
       <MealPlanForm onSubmit={handleGeneratePlan} isLoading={isLoading} />
       <MealPlanDisplay mealPlan={mealPlan} isLoading={isLoading} />
     </div>
