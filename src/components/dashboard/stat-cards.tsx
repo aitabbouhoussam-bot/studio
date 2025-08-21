@@ -54,7 +54,7 @@ export function StatCards({ mealPlan }: StatCardsProps) {
             description: "To buy this week"
         },
         {
-            title: "Plan Status",
+            title: "WHAT IS THE ROLE OF THIS",
             value: stats.planStatus,
             icon: Activity,
             description: "Current state"
