@@ -53,12 +53,11 @@ export default function Home() {
                 </div>
               </div>
               <Image
-                src="https://placehold.co/650x650.png"
+                src="https://firebasestorage.googleapis.com/v0/b/mealgenius-sf4j4.appspot.com/o/user_uploads%2Ftmp-1-1725514652281.png?alt=media&token=8753239a-76d7-4660-8451-24838634e060"
                 width="650"
                 height="650"
-                alt="Hero"
-                data-ai-hint="healthy food platter"
-                className="mx-auto aspect-square overflow-hidden rounded-xl object-cover sm:w-full lg:order-last"
+                alt="Feastly Logo"
+                className="mx-auto aspect-square overflow-hidden rounded-xl object-contain sm:w-full lg:order-last"
               />
             </div>
           </div>
