@@ -7,7 +7,7 @@ import { Checkbox } from "./ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { ListChecks, ShoppingCart } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
-import type { GenerateMealPlanOutput } from "@/ai/flows/generate-meal-plan";
+import type { GenerateMealPlanOutput } from "@/ai/schemas";
 import { Progress } from "./ui/progress";
 
 interface AggregatedIngredient {

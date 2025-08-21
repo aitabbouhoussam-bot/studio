@@ -21,7 +21,7 @@ import {
   saveMealPlanToFirestore,
   generateCacheKey,
 } from '@/lib/services/meal-plan-service';
-import { GenerateMealPlanOutput, GenerateMealPlanOutputSchema } from './generate-meal-plan';
+import { GenerateMealPlanOutput, GenerateMealPlanOutputSchema } from '../schemas';
 
 
 // Define the input schema for the main exported function

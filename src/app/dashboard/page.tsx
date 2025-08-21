@@ -6,7 +6,7 @@ import { useMealPlan } from "@/contexts/meal-plan-context";
 import { z } from "zod";
 import { generateMealPlanAction } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
-import type { GenerateMealPlanOutput } from "@/ai/flows/generate-meal-plan";
+import type { GenerateMealPlanOutput } from "@/ai/schemas";
 
 const formSchema = z.object({
   dietaryPreferences: z.string().min(1),

@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
-import type { GenerateMealPlanOutput } from "@/ai/flows/generate-meal-plan";
+import type { GenerateMealPlanOutput } from "@/ai/schemas";
 import { Badge } from "./ui/badge";
 
 interface MealPlanDisplayProps {

@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, ReactNode } from "react";
-import type { GenerateMealPlanOutput } from "@/ai/flows/generate-meal-plan";
+import type { GenerateMealPlanOutput } from "@/ai/schemas";
 
 interface MealPlanContextType {
   mealPlan: GenerateMealPlanOutput | null;
