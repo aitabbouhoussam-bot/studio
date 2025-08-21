@@ -11,12 +11,17 @@ import { useToast } from "@/hooks/use-toast";
 import type { GenerateMealPlanOutput } from "@/ai/schemas";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ListTodo } from "lucide-react";
+import { ListTodo, PlusCircle } from "lucide-react";
 
 const formSchema = z.object({
-  dietaryPreferences: z.string().min(1),
-  allergies: z.string().default("None"),
-  calorieIntake: z.coerce.number().positive(),
+  dietaryPreferences: z.string(),
+  allergies: z.string(),
+  calorieIntake: z.coerce.number(),
+  budgetLevel: z.number(),
+  defaultServings: z.number(),
+  maxCookingTimeMins: z.number(),
+  dislikedIngredients: z.array(z.string()),
+  preferredCuisines: z.array(z.string()),
 });
 
 export default function DashboardPage() {
@@ -58,6 +63,10 @@ export default function DashboardPage() {
                     <ListTodo className="mr-2 h-4 w-4"/>
                     View Grocery List
                 </Link>
+            </Button>
+            <Button disabled>
+                <PlusCircle className="mr-2 h-4 w-4"/>
+                Add Recipe
             </Button>
         </div>
       </div>

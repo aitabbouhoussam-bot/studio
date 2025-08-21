@@ -24,6 +24,8 @@ import {
   ChevronDown,
   Users,
   BookOpen,
+  LayoutDashboard,
+  CalendarDays,
 } from "lucide-react";
 import { Icons } from "./icons";
 import { Button } from "./ui/button";
@@ -65,11 +67,24 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                   href="/dashboard"
                   asChild
                   isActive={pathname === "/dashboard"}
-                  tooltip="Meal Plan"
+                  tooltip="Dashboard"
                 >
                   <Link href="/dashboard">
-                    <UtensilsCrossed />
-                    <span>Meal Plan</span>
+                    <LayoutDashboard />
+                    <span>Dashboard</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  href="/dashboard/meal-planner"
+                  asChild
+                  isActive={isActive("/dashboard/meal-planner")}
+                  tooltip="Meal Planner"
+                >
+                  <Link href="/dashboard/meal-planner">
+                    <CalendarDays />
+                    <span>Meal Planner</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
