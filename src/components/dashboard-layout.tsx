@@ -57,7 +57,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <Link href="/dashboard" className="flex items-center gap-2">
               <Icons.logo className="w-8 h-8 text-primary" />
               <span className="font-bold text-lg font-headline group-data-[collapsible=icon]:hidden">
-                MealGenius
+                MealWise
               </span>
             </Link>
           </SidebarHeader>

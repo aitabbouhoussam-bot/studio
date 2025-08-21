@@ -13,44 +13,28 @@ const tiers = [
     description: "Get started with the basics.",
     features: [
       "5 AI meal generations per month",
-      "Basic dietary preferences",
-      "Standard shopping list",
+      "Standard shopping lists",
+      "Basic recipe saving",
     ],
     cta: "Get Started",
     href: "/signup",
     variant: "outline" as const,
   },
   {
-    name: "Pro",
-    price: "$9",
+    name: "Premium",
+    price: "$5.99",
     frequency: "/month",
-    description: "Unlock the full power of MealGenius.",
+    description: "Unlock the full power of MealWise.",
     features: [
-      "Unlimited meal plan generations",
-      "Advanced dietary options (Keto, Paleo, etc.)",
-      "Smart, categorized shopping lists",
-      "Family sharing features",
-      "Export grocery lists (CSV, PDF)",
+      "Unlimited AI meal plan generations",
+      "Advanced dietary options",
+      "Family collaboration & sharing",
+      "Advanced meal insights",
       "Priority support",
     ],
-    cta: "Upgrade to Pro",
+    cta: "Start Free Trial",
     href: "/signup",
     variant: "default" as const,
-  },
-    {
-    name: "Family",
-    price: "$15",
-    frequency: "/month",
-    description: "Meal planning for the whole family.",
-    features: [
-        "All Pro features",
-        "Up to 5 family member profiles",
-        "Combined family shopping lists",
-        "Kid-friendly recipe options",
-    ],
-    cta: "Choose Family Plan",
-    href: "/signup",
-    variant: "outline" as const,
   },
 ];
 
@@ -71,9 +55,14 @@ export default function PricingPage() {
                 </p>
               </div>
             </div>
-            <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 pt-12 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mx-auto grid max-w-4xl grid-cols-1 gap-8 pt-12 md:grid-cols-2">
               {tiers.map((tier) => (
                 <Card key={tier.name} className={`flex flex-col ${tier.variant === 'default' ? 'border-primary shadow-lg' : ''}`}>
+                   {tier.variant === 'default' && (
+                      <div className="py-2 px-4 bg-primary text-primary-foreground text-center text-sm font-semibold rounded-t-lg">
+                        Most Popular
+                      </div>
+                    )}
                   <CardHeader>
                     <CardTitle className="font-headline">{tier.name}</CardTitle>
                     <CardDescription>{tier.description}</CardDescription>
