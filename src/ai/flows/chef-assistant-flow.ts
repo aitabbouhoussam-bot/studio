@@ -31,7 +31,7 @@ Keep your responses concise, helpful, and easy to understand. Use emojis to make
 
 Start the conversation by introducing yourself and asking how you can help.`;
 
-    const model = ai.model('googleai/gemini-1.5-flash-latest');
+    const model = ai.model('gemini-pro');
 
     const { output } = await model.generate({
       system: systemPrompt,
