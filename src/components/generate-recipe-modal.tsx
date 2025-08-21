@@ -20,7 +20,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
@@ -35,6 +34,7 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Sparkles, Save, Redo } from "lucide-react";
 import { useMealPlan } from "@/contexts/meal-plan-context";
 import type { Recipe } from "@/ai/schemas";
+import { Skeleton } from "./ui/skeleton";
 
 
 const formSchema = z.object({
@@ -47,6 +47,22 @@ interface GenerateRecipeModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+const LoadingSkeleton = () => (
+    <div className="space-y-4">
+        <Skeleton className="h-64 w-full rounded-md" />
+        <div className="space-y-2">
+            <Skeleton className="h-8 w-3/4" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+        </div>
+        <div className="flex gap-2">
+            <Skeleton className="h-6 w-16" />
+            <Skeleton className="h-6 w-20" />
+        </div>
+    </div>
+);
+
 
 export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProps) {
   const { toast } = useToast();
@@ -160,15 +176,7 @@ export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProp
         </div>
 
         <ScrollArea className="max-h-[55vh] p-1 pr-4">
-            {isLoading && (
-                 <div className="space-y-4">
-                    <div className="flex justify-center items-center h-48 bg-secondary rounded-md animate-pulse">
-                        <Icons.spinner className="h-8 w-8 animate-spin text-muted-foreground" />
-                    </div>
-                    <div className="h-6 w-3/4 bg-secondary rounded animate-pulse"></div>
-                    <div className="h-4 w-1/2 bg-secondary rounded animate-pulse"></div>
-                </div>
-            )}
+            {isLoading && <LoadingSkeleton /> }
             
             {generatedRecipe && (
                 <div className="space-y-6 animate-in fade-in">

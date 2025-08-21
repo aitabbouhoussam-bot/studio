@@ -55,7 +55,7 @@ const generateRecipeFlow = ai.defineFlow(
 
 CRITICAL REQUIREMENTS:
 1.  Generate exactly ONE creative, delicious, and easy-to-follow recipe.
-2.  Provide a valid and publicly accessible \`imageUrl\` of the finished dish. Use placeholder services like 'https://placehold.co' if needed.
+2.  Provide a valid and publicly accessible \`imageUrl\` of the finished dish. Use the placeholder service 'https://placehold.co/600x400.png' if a real image is not available.
 3.  Provide accurate nutritional information.
 4.  All ingredients must specify exact quantities, units, and a valid category.
 5.  Instructions must be clear, step-by-step, and easy to follow.

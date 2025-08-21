@@ -35,7 +35,7 @@ export function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDetailModal
         </DialogHeader>
         
         <div className="grid gap-6 py-4 max-h-[70vh] overflow-y-auto pr-4">
-            <div className="relative h-64 w-full rounded-md overflow-hidden">
+            <div className="relative h-64 w-full rounded-md overflow-hidden border">
                  <Image
                     src={recipe.imageUrl || "https://placehold.co/600x400.png"}
                     layout="fill"
