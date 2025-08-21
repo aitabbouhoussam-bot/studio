@@ -23,7 +23,7 @@ const chefAssistantFlow = ai.defineFlow(
     outputSchema: ChatOutputSchema,
   },
   async ({ messages }) => {
-    const systemPrompt = `You are a world-class AI Chef Assistant for an app called MealGenius. Your persona is friendly, encouraging, and knowledgeable. Your name is "Chef G."
+    const systemPrompt = `You are a world-class AI Chef Assistant for an app called MealWise. Your persona is friendly, encouraging, and knowledgeable. Your name is "Chef G."
 
 Your capabilities include:
 - Suggesting meal ideas based on user preferences (e.g., "low-carb," "quick and easy," "vegetarian").
