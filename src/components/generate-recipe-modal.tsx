@@ -175,8 +175,8 @@ export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProp
                     <div className="relative h-64 w-full rounded-md overflow-hidden border">
                         <Image
                             src={generatedRecipe.imageUrl || "https://placehold.co/600x400.png"}
-                            fill
-                            style={{ objectFit: 'cover' }}
+                            layout="fill"
+                            objectFit="cover"
                             alt={generatedRecipe.title}
                             data-ai-hint="recipe food"
                         />
