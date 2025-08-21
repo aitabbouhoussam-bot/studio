@@ -62,7 +62,7 @@ Interaction Guidelines:
 
 Your goal is not just to provide recipes, but to inspire confidence, creativity, and joy in cooking. Every interaction should leave users more excited about their culinary journey!`;
 
-    const model = ai.model('gemini-pro');
+    const model = ai.model('googleai/gemini-pro');
 
     // The first message from the client is the hardcoded intro. 
     // We only want to send the actual conversation history.
