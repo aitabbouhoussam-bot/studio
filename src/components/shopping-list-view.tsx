@@ -1,17 +1,20 @@
+
 "use client";
 
 import { useMealPlan } from "@/contexts/meal-plan-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Checkbox } from "./ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
-import { ListChecks } from "lucide-react";
-import { useMemo } from "react";
+import { ListChecks, ShoppingCart } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
 import type { GenerateMealPlanOutput } from "@/ai/flows/generate-meal-plan";
+import { Progress } from "./ui/progress";
 
 interface AggregatedIngredient {
   name: string;
   quantity: number;
   unit: string;
+  category: string;
   recipes: string[];
 }
 
@@ -21,6 +24,12 @@ interface CategorizedList {
 
 export function ShoppingListView() {
   const { mealPlan } = useMealPlan();
+  const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    // Reset checked items when meal plan changes
+    setCheckedItems({});
+  }, [mealPlan]);
 
   const shoppingList: CategorizedList = useMemo(() => {
     if (!mealPlan?.recipes) return {};
@@ -40,6 +49,7 @@ export function ShoppingListView() {
             name: ingredient.name,
             quantity: ingredient.quantity,
             unit: ingredient.unit,
+            category: ingredient.category || 'other',
             recipes: [recipe.title],
           };
         }
@@ -49,14 +59,14 @@ export function ShoppingListView() {
     const categorized: CategorizedList = {};
     for(const recipe of mealPlan.recipes) {
       for (const ingredient of recipe.ingredients) {
-        if (!categorized[ingredient.category]) {
-          categorized[ingredient.category] = [];
+        const categoryKey = ingredient.category || 'other';
+        if (!categorized[categoryKey]) {
+          categorized[categoryKey] = [];
         }
         const key = `${ingredient.name.toLowerCase()}-${ingredient.unit}`;
         if(aggregated[key]) {
-            // Find if already added to prevent duplicates
-            if(!categorized[ingredient.category].find(i => i.name === aggregated[key].name && i.unit === aggregated[key].unit)){
-                 categorized[ingredient.category].push(aggregated[key]);
+            if(!categorized[categoryKey].find(i => i.name === aggregated[key].name && i.unit === aggregated[key].unit)){
+                 categorized[categoryKey].push(aggregated[key]);
             }
         }
       }
@@ -65,6 +75,12 @@ export function ShoppingListView() {
     return categorized;
   }, [mealPlan]);
 
+  const handleToggleItem = (itemName: string) => {
+    setCheckedItems(prev => ({
+      ...prev,
+      [itemName]: !prev[itemName]
+    }));
+  };
 
   if (!mealPlan) {
     return (
@@ -78,15 +94,27 @@ export function ShoppingListView() {
     );
   }
 
-  const categories = Object.keys(shoppingList).sort();
+  const categoryOrder = ['produce', 'protein', 'dairy', 'bakery', 'pantry', 'frozen', 'beverages', 'other'];
+  const allItems = Object.values(shoppingList).flat();
+  const sortedCategories = Object.keys(shoppingList).sort((a, b) => {
+    const aIndex = categoryOrder.indexOf(a.toLowerCase());
+    const bIndex = categoryOrder.indexOf(b.toLowerCase());
+    if (aIndex === -1) return 1;
+    if (bIndex === -1) return -1;
+    return aIndex - bIndex;
+  });
 
-  if (categories.length === 0) {
+  const totalItemsCount = allItems.length;
+  const checkedItemsCount = Object.values(checkedItems).filter(Boolean).length;
+  const progressPercentage = totalItemsCount > 0 ? (checkedItemsCount / totalItemsCount) * 100 : 0;
+
+  if (totalItemsCount === 0) {
       return (
          <Alert>
           <ListChecks className="h-4 w-4" />
-          <AlertTitle>Could Not Generate Shopping List</AlertTitle>
+          <AlertTitle>Your Shopping List is Empty</AlertTitle>
           <AlertDescription>
-            We couldn't automatically extract ingredients from your meal plan. You can still view the full plan and manually create your list.
+            We couldn't find any ingredients in your current meal plan. Try generating a new plan.
           </AlertDescription>
         </Alert>
       )
@@ -96,28 +124,52 @@ export function ShoppingListView() {
     <div className="space-y-8">
       <Card className="animate-in fade-in duration-500">
         <CardHeader>
-            <CardTitle className="font-headline text-2xl">Your Shopping List</CardTitle>
-            <CardDescription>Aggregated from your 7-day meal plan.</CardDescription>
+            <CardTitle className="font-headline text-2xl flex items-center gap-2">
+              <ShoppingCart />
+              Your Shopping List
+            </CardTitle>
+            <CardDescription>Aggregated from your 7-day meal plan. Check items off as you shop!</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
-            {categories.map((category) => (
-                <div key={category}>
-                    <h3 className="font-semibold text-lg text-primary capitalize">{category}</h3>
-                     <div className="mt-2 space-y-2 pl-2 border-l-2 border-primary/50">
-                        {shoppingList[category].map((item, index) => (
-                             <div key={index} className="flex items-center space-x-3">
-                                <Checkbox id={`${category}-${index}`} />
-                                <label
-                                    htmlFor={`${category}-${index}`}
-                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                >
-                                    {item.quantity} {item.unit} {item.name}
-                                </label>
-                            </div>
-                        ))}
-                    </div>
+        <CardContent>
+            <div className="mb-6 p-4 bg-secondary/50 rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-md font-semibold">Shopping Progress</h3>
+                    <span className="text-sm text-muted-foreground font-medium">
+                        {checkedItemsCount}/{totalItemsCount} completed
+                    </span>
                 </div>
-            ))}
+                <Progress value={progressPercentage} />
+            </div>
+            <div className="space-y-6">
+                {sortedCategories.map((category) => (
+                    <div key={category}>
+                        <h3 className="font-semibold text-lg text-primary capitalize border-b-2 border-primary/20 pb-1 mb-3">{category}</h3>
+                        <div className="space-y-3 pl-2">
+                            {shoppingList[category].map((item, index) => {
+                                const isChecked = !!checkedItems[item.name];
+                                return (
+                                <div 
+                                    key={index} 
+                                    className={`flex items-center space-x-3 transition-opacity ${isChecked ? 'opacity-50' : ''}`}
+                                >
+                                    <Checkbox 
+                                        id={`${category}-${index}`} 
+                                        checked={isChecked}
+                                        onCheckedChange={() => handleToggleItem(item.name)}
+                                    />
+                                    <label
+                                        htmlFor={`${category}-${index}`}
+                                        className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${isChecked ? 'line-through' : ''}`}
+                                    >
+                                        {item.quantity} {item.unit} {item.name}
+                                    </label>
+                                </div>
+                                )
+                            })}
+                        </div>
+                    </div>
+                ))}
+            </div>
         </CardContent>
       </Card>
     </div>
