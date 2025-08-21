@@ -5,13 +5,17 @@ import { useMealPlan } from "@/contexts/meal-plan-context";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { CalendarDays, PlusCircle, Utensils } from "lucide-react";
-import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
+import { useState } from "react";
+import type { Recipe } from "@/ai/schemas";
+import { RecipeDetailModal } from "./recipe-detail-modal";
+
 
 const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 export function MealPlannerView() {
   const { mealPlan, isLoading } = useMealPlan();
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
   if (isLoading) {
     return <div>Loading...</div>; // Replace with a proper skeleton loader
@@ -32,7 +36,7 @@ export function MealPlannerView() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
             <h1 className="text-2xl md:text-3xl font-bold font-headline">Weekly Meal Planner</h1>
-            <p className="text-muted-foreground">Drag and drop recipes to plan your week.</p>
+            <p className="text-muted-foreground">Click on a recipe to see the details.</p>
         </div>
         <div className="flex items-center gap-2">
             <Button variant="outline" disabled>Previous Week</Button>
@@ -63,8 +67,12 @@ export function MealPlannerView() {
                                 return mealOrder[a.mealType] - mealOrder[b.mealType];
                               })
                              .map(recipe => (
-                                <div key={recipe.title} className="bg-secondary/50 p-2 rounded-md border text-sm">
-                                    <p className="font-semibold text-primary/90">{recipe.mealType}</p>
+                                <div 
+                                    key={recipe.title} 
+                                    className="bg-secondary/50 p-2 rounded-md border text-sm cursor-pointer hover:bg-secondary transition-colors"
+                                    onClick={() => setSelectedRecipe(recipe)}
+                                >
+                                    <p className="font-semibold text-primary/90 capitalize">{recipe.mealType}</p>
                                     <p className="text-muted-foreground">{recipe.title}</p>
                                 </div>
                              ))
@@ -79,6 +87,14 @@ export function MealPlannerView() {
                 </Card>
             ))}
         </div>
+      )}
+
+      {selectedRecipe && (
+        <RecipeDetailModal 
+            recipe={selectedRecipe}
+            isOpen={!!selectedRecipe}
+            onClose={() => setSelectedRecipe(null)}
+        />
       )}
     </div>
   );

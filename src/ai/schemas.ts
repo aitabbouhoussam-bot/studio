@@ -1,3 +1,4 @@
+
 /**
  * @fileOverview Shared Zod schemas for AI flows.
  *
@@ -36,6 +37,8 @@ const RecipeSchema = z.object({
   difficulty: z.enum(['easy', 'medium', 'hard']),
   tags: z.array(z.string()).optional(),
 });
+export type Recipe = z.infer<typeof RecipeSchema>;
+
 
 export const GenerateMealPlanOutputSchema = z.object({
   recipes: z.array(RecipeSchema),
