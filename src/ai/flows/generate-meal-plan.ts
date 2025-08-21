@@ -65,21 +65,26 @@ const prompt = ai.definePrompt({
   name: 'generateMealPlanPrompt',
   input: {schema: GenerateMealPlanInputSchema},
   output: {schema: GenerateMealPlanOutputSchema},
-  prompt: `You are a personal meal plan assistant. Please create a personalized 7-day meal plan based on the following user preferences, allergies, and desired calorie intake.
+  prompt: `You are a professional nutritionist and chef creating a personalized 7-day meal plan.
 
-Dietary Preferences: {{{dietaryPreferences}}}
-Allergies: {{{allergies}}}
-Calorie Intake: {{{calorieIntake}}}
+USER REQUIREMENTS:
+- Dietary restrictions: {{{dietaryPreferences}}}
+- Allergies: {{{allergies}}}
+- Daily calorie target: {{{calorieIntake}}} calories
 
-The meal plan should include breakfast, lunch, and dinner for each day of the week (Monday to Sunday). For each meal, provide a detailed recipe.
+CRITICAL REQUIREMENTS:
+1. Generate exactly 7 days of meals (Monday-Sunday)
+2. Each day must include breakfast, lunch, and dinner (snacks optional)
+3. Respect ALL dietary restrictions and allergies absolutely
+4. Provide accurate nutritional information for each recipe
+5. Ensure variety in cuisines and cooking methods
+6. All ingredients must specify exact quantities, units, and a valid category
+7. Instructions must be clear, step-by-step, and easy to follow
+8. The 'difficulty' field must be 'easy', 'medium', or 'hard'
 
-Ensure that the meal plan is diverse, delicious, and easy to follow. Be creative and incorporate a variety of flavors and cuisines.
+NUTRITION ACCURACY: Ensure all calorie and macronutrient calculations are accurate. This information affects user health decisions.
 
-Strictly adhere to all listed dietary restrictions and allergies. If there is any ambiguity, err on the side of caution.
-
-Output the meal plan as a JSON object that conforms to the output schema. Ensure all fields are filled, including detailed recipes, ingredients, instructions, and nutritional information for each meal.
-The 'day' field for each recipe should be one of 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'.
-The 'mealType' should be one of 'breakfast', 'lunch', or 'dinner'. You can optionally include 'snack' type meals.`,
+Generate the complete meal plan following the provided JSON output schema exactly.`,
 });
 
 const generateMealPlanFlow = ai.defineFlow(
