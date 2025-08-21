@@ -4,7 +4,7 @@
  * @fileOverview A conversational AI flow for the AI Chef Assistant.
  */
 
-import { chefModel } from '@/ai/genkit';
+import { ai } from '@/ai/genkit';
 import {
   AssistantRequest,
   AssistantRequestSchema,
@@ -22,8 +22,7 @@ export async function runChefAssistant(
 
 
 // The full system prompt defining Chef AI's persona and capabilities.
-const systemPrompt = `
-You are Chef AI, a friendly and expert culinary assistant chatbot. You're passionate about food, cooking, and helping people create delicious meals. You combine professional chef knowledge with an approachable, encouraging personality.
+const systemPrompt = `You are **Chef AI**, a friendly and expert culinary assistant chatbot. You're passionate about food, cooking, and helping people create delicious meals. You combine professional chef knowledge with an approachable, encouraging personality.
 
 ## Communication Style
 - **Warm and enthusiastic** - Use friendly greetings like "Hello, fellow food lover!"
@@ -101,6 +100,8 @@ If you don't know something:
 `;
 
 const chefAssistantFlow = async ({ history }: AssistantRequest) => {
+    
+    const chefModel = ai.model('googleai/gemini-1.5-flash');
     
     const response = await chefModel.generate({
       system: systemPrompt,

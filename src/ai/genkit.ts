@@ -9,5 +9,3 @@ export const ai = genkit({
     }),
   ],
 });
-
-export const chefModel = ai.model('googleai/gemini-1.5-flash');
