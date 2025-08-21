@@ -36,19 +36,14 @@ const formSchema = z.object({
   budgetLevel: z.number().min(1).max(5).default(3),
   dailyCalorieGoal: z.coerce.number().positive().min(1000).max(5000).default(2000),
   defaultServings: z.coerce.number().positive().default(2),
-  // These fields are in the schema but we will use defaults for now.
-  // We can add form fields for them later.
   maxCookingTimeMins: z.number().default(45),
   dislikedIngredients: z.array(z.string()).default([]),
   preferredCuisines: z.array(z.string()).default([]),
-  // Fields that were on the old form that are now part of the new schema
-  dietaryPreferences: z.string().optional(),
-  calorieIntake: z.coerce.number().positive().optional(),
 });
 
 
 interface MealPlanFormProps {
-  onSubmit: (data: any) => void; // Using `any` to be flexible with the evolving schema
+  onSubmit: (data: any) => void; 
   isLoading: boolean;
 }
 
@@ -68,12 +63,15 @@ export function MealPlanForm({ onSubmit, isLoading }: MealPlanFormProps) {
   });
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
-    // Transform the data to match the expected format of the AI flow
     const submissionData = {
         dietaryPreferences: values.dietaryRestrictions.join(', ') || 'None',
         allergies: values.allergies.join(', ') || 'None',
         calorieIntake: values.dailyCalorieGoal,
-        // you could add other values here as the AI flow evolves
+        budgetLevel: values.budgetLevel,
+        defaultServings: values.defaultServings,
+        maxCookingTimeMins: values.maxCookingTimeMins,
+        dislikedIngredients: values.dislikedIngredients,
+        preferredCuisines: values.preferredCuisines,
     };
     onSubmit(submissionData);
   }
@@ -270,5 +268,3 @@ export function MealPlanForm({ onSubmit, isLoading }: MealPlanFormProps) {
     </Card>
   );
 }
-
-    
