@@ -2,7 +2,11 @@
 "use server";
 
 import { z } from "zod";
-import { chefAssistant, ChatInputSchema, ChatOutput } from "@/ai/flows/chef-assistant-flow";
+import { chefAssistant } from "@/ai/flows/chef-assistant-flow";
+import {
+  ChatInputSchema,
+  type ChatOutput,
+} from "@/ai/schemas/chef-assistant-schemas";
 import type { Message } from "@/components/ai-chef-assistant";
 
 export async function chatWithAssistant(
