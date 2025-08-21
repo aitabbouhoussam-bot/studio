@@ -21,6 +21,7 @@ import {
   Crown,
   LogOut,
   ChevronDown,
+  Users,
 } from "lucide-react";
 import { Icons } from "./icons";
 import { Button } from "./ui/button";
@@ -80,6 +81,19 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                   <Link href="/dashboard/shopping-list">
                     <ListTodo />
                     <span>Shopping List</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  href="/dashboard/family"
+                  asChild
+                  isActive={isActive("/dashboard/family")}
+                  tooltip="Family"
+                >
+                  <Link href="/dashboard/family">
+                    <Users />
+                    <span>Family</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
