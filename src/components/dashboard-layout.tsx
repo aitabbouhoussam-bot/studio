@@ -28,6 +28,7 @@ import {
   CalendarDays,
   CreditCard,
   Refrigerator,
+  Sparkles,
 } from "lucide-react";
 import { Icons } from "./icons";
 import { Button } from "./ui/button";
@@ -42,9 +43,11 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { usePathname } from "next/navigation";
 import { MealPlanProvider } from "@/contexts/meal-plan-context";
+import { AiChefAssistant } from "./dashboard/ai-chef-assistant";
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [isAssistantOpen, setIsAssistantOpen] = React.useState(false);
 
   const isActive = (path: string) => {
     return pathname.startsWith(path);
@@ -214,11 +217,15 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               {pathname.split("/").pop()?.replace("-", " ") || "Dashboard"}
             </h1>
             <div>
-              {/* Placeholder for other header items */}
+              <Button variant="outline" size="sm" onClick={() => setIsAssistantOpen(true)}>
+                <Sparkles className="mr-2 h-4 w-4 text-primary" />
+                AI Chef Assistant
+              </Button>
             </div>
           </header>
           <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
         </SidebarInset>
+        <AiChefAssistant isOpen={isAssistantOpen} onOpenChange={setIsAssistantOpen} />
       </SidebarProvider>
     </MealPlanProvider>
   );
