@@ -57,20 +57,19 @@ export function ShoppingListView() {
     }
     
     const categorized: CategorizedList = {};
-    for(const recipe of mealPlan.recipes) {
-      for (const ingredient of recipe.ingredients) {
-        const categoryKey = ingredient.category || 'other';
-        if (!categorized[categoryKey]) {
-          categorized[categoryKey] = [];
-        }
-        const key = `${ingredient.name.toLowerCase()}-${ingredient.unit}`;
-        if(aggregated[key]) {
-            if(!categorized[categoryKey].find(i => i.name === aggregated[key].name && i.unit === aggregated[key].unit)){
-                 categorized[categoryKey].push(aggregated[key]);
-            }
-        }
+    for(const item of Object.values(aggregated)) {
+      const categoryKey = item.category || 'other';
+      if (!categorized[categoryKey]) {
+        categorized[categoryKey] = [];
       }
+      categorized[categoryKey].push(item);
     }
+
+    // Sort items within each category alphabetically
+    for (const category in categorized) {
+      categorized[category].sort((a, b) => a.name.localeCompare(b.name));
+    }
+
 
     return categorized;
   }, [mealPlan]);
