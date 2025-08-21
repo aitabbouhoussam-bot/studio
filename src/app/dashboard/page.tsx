@@ -11,9 +11,10 @@ import { useToast } from "@/hooks/use-toast";
 import type { GenerateMealPlanOutput } from "@/ai/schemas";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ListTodo, PlusCircle, ArrowRight } from "lucide-react";
+import { ListTodo, PlusCircle, ArrowRight, MessageSquare, ChefHat } from "lucide-react";
 import { useState } from "react";
 import { AddRecipeModal } from "@/components/add-recipe-modal";
+import { AiChefAssistant } from "@/components/ai-chef-assistant";
 
 const formSchema = z.object({
   dietaryPreferences: z.string(),
@@ -30,6 +31,7 @@ export default function DashboardPage() {
   const { mealPlan, setMealPlan, isLoading, setIsLoading } = useMealPlan();
   const { toast } = useToast();
   const [isAddRecipeModalOpen, setIsAddRecipeModalOpen] = useState(false);
+  const [isChefAssistantOpen, setIsChefAssistantOpen] = useState(false);
 
   const handleGeneratePlan = async (data: z.infer<typeof formSchema>) => {
     setIsLoading(true);
@@ -67,6 +69,8 @@ export default function DashboardPage() {
   return (
     <>
       <AddRecipeModal isOpen={isAddRecipeModalOpen} onClose={() => setIsAddRecipeModalOpen(false)} />
+      <AiChefAssistant isOpen={isChefAssistantOpen} onClose={() => setIsChefAssistantOpen(false)} />
+
       <div className="space-y-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -91,6 +95,14 @@ export default function DashboardPage() {
         <MealPlanForm onSubmit={handleGeneratePlan} isLoading={isLoading} />
         <MealPlanDisplay mealPlan={mealPlan} isLoading={isLoading} />
       </div>
+
+       <Button 
+        className="fixed bottom-6 right-6 h-16 w-16 rounded-full shadow-lg"
+        onClick={() => setIsChefAssistantOpen(true)}
+        >
+            <ChefHat className="h-8 w-8" />
+            <span className="sr-only">Open AI Chef Assistant</span>
+        </Button>
     </>
   );
 }
