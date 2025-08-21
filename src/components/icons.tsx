@@ -2,11 +2,47 @@ import { type LucideProps, UtensilsCrossed, Sparkles, LoaderCircle, Shell } from
 import type { SVGProps } from "react";
 
 export const Icons = {
-  logo: (props: LucideProps) => (
-    <div className="relative">
-      <UtensilsCrossed {...props} />
-      <Sparkles className="absolute -top-1 -right-1 w-4 h-4 text-accent" />
-    </div>
+  logo: (props: SVGProps<SVGSVGElement>) => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <defs>
+        <linearGradient id="heart-gradient" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#FBBF24" />
+          <stop offset="100%" stopColor="#F87171" />
+        </linearGradient>
+      </defs>
+      <path
+        fill="url(#heart-gradient)"
+        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+      />
+      <path
+        d="M15.5 6a.5.5 0 0 0-.5.5v2.37a3.5 3.5 0 0 1-2.2 3.13l-1.5 1.5a.5.5 0 0 0 .7.7l1.5-1.5a4.5 4.5 0 0 0 2.83-4.03V6.5a.5.5 0 0 0-.5-.5Z"
+        fill="#FFFFFF"
+        stroke="#FFFFFF"
+        strokeWidth={1}
+
+      />
+       <path
+        d="M8.5 6a.5.5 0 0 1 .5.5v4.5a.5.5 0 0 1-1 0V7H7.5a.5.5 0 0 1 0-1H8Zm0 5.5a.5.5 0 0 1 .5.5v1.5a.5.5 0 0 1-1 0v-1.5a.5.5 0 0 1 .5-.5Z"
+        fill="#FFFFFF"
+        stroke="#FFFFFF"
+        strokeWidth={1}
+      />
+       <path
+        d="M9 12a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"
+        fill="#FFFFFF"
+        stroke="#FFFFFF"
+        strokeWidth={1}
+      />
+    </svg>
   ),
   spinner: LoaderCircle,
   google: (props: SVGProps<SVGSVGElement>) => (
