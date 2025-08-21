@@ -3,24 +3,46 @@
 
 import { useMealPlan } from "@/contexts/meal-plan-context";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { BookOpen } from "lucide-react";
+import { BookOpen, PlusCircle } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import { useState } from "react";
+import { AddRecipeModal } from "@/components/add-recipe-modal";
+import { GenerateRecipeModal } from "@/components/generate-recipe-modal";
 
 export default function RecipesPage() {
   const { mealPlan } = useMealPlan();
+  const [isAddRecipeModalOpen, setIsAddRecipeModalOpen] = useState(false);
+  const [isGenerateRecipeModalOpen, setIsGenerateRecipeModalOpen] = useState(false);
 
   if (!mealPlan || !mealPlan.recipes || mealPlan.recipes.length === 0) {
     return (
-      <Alert>
-        <BookOpen className="h-4 w-4" />
-        <AlertTitle>No Recipes Found</AlertTitle>
-        <AlertDescription>
-          Your recipe library is empty. Generate a meal plan to start populating it with new recipes.
-        </AlertDescription>
-      </Alert>
+        <>
+        <GenerateRecipeModal isOpen={isGenerateRecipeModalOpen} onClose={() => setIsGenerateRecipeModalOpen(false)} />
+        <AddRecipeModal isOpen={isAddRecipeModalOpen} onClose={() => setIsAddRecipeModalOpen(false)} />
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+            <div>
+                <h1 className="text-2xl md:text-3xl font-bold font-headline">Recipe Library</h1>
+                <p className="text-muted-foreground">Browse and manage all your saved recipes.</p>
+            </div>
+            <div className="flex items-center gap-2">
+                <Button onClick={() => setIsGenerateRecipeModalOpen(true)}>
+                    <PlusCircle className="mr-2 h-4 w-4"/>
+                    Generate with AI
+                </Button>
+            </div>
+        </div>
+        <Alert>
+            <BookOpen className="h-4 w-4" />
+            <AlertTitle>No Recipes Found</AlertTitle>
+            <AlertDescription>
+            Your recipe library is empty. Generate a meal plan or add a new recipe to get started.
+            </AlertDescription>
+        </Alert>
+      </>
     );
   }
 
@@ -28,6 +50,9 @@ export default function RecipesPage() {
   const uniqueRecipes = Array.from(new Map(mealPlan.recipes.map(recipe => [recipe.title, recipe])).values());
 
   return (
+    <>
+    <GenerateRecipeModal isOpen={isGenerateRecipeModalOpen} onClose={() => setIsGenerateRecipeModalOpen(false)} />
+    <AddRecipeModal isOpen={isAddRecipeModalOpen} onClose={() => setIsAddRecipeModalOpen(false)} />
     <div className="space-y-8">
        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -35,8 +60,9 @@ export default function RecipesPage() {
             <p className="text-muted-foreground">Browse and manage all your saved recipes.</p>
         </div>
         <div className="flex items-center gap-2">
-            <Button disabled>
-                Add New Recipe
+             <Button onClick={() => setIsGenerateRecipeModalOpen(true)}>
+                <PlusCircle className="mr-2 h-4 w-4"/>
+                Generate with AI
             </Button>
         </div>
       </div>
@@ -44,22 +70,35 @@ export default function RecipesPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {uniqueRecipes.map((recipe, index) => (
           <Card key={index} className="flex flex-col">
-            <CardHeader>
-              <CardTitle className="font-headline text-xl">{recipe.title}</CardTitle>
+            <CardHeader className="p-0">
+                <div className="relative h-48 w-full">
+                    <Image
+                        src={recipe.imageUrl || "https://placehold.co/600x400.png"}
+                        alt={recipe.title}
+                        width={600}
+                        height={400}
+                        className="rounded-t-lg object-cover w-full h-full"
+                        data-ai-hint="recipe food"
+                    />
+                </div>
+              <div className="p-6">
+                <CardTitle className="font-headline text-xl">{recipe.title}</CardTitle>
+              </div>
             </CardHeader>
-            <CardContent className="flex-1">
+            <CardContent className="flex-1 p-6 pt-0">
               <p className="text-sm text-muted-foreground line-clamp-3">{recipe.description}</p>
                <div className="flex flex-wrap gap-2 mt-4">
                   <Badge variant="outline" className="capitalize">{recipe.difficulty}</Badge>
                   <Badge variant="secondary">{recipe.cookTimeMins + recipe.prepTimeMins} min</Badge>
               </div>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="p-6 pt-0">
                 <Button variant="outline" className="w-full" disabled>View Recipe</Button>
             </CardFooter>
           </Card>
         ))}
       </div>
     </div>
+    </>
   );
 }

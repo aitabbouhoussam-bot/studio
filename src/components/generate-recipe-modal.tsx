@@ -33,6 +33,8 @@ import type { GeneratedRecipe } from "@/ai/flows/generate-recipe-flow";
 import { Badge } from "./ui/badge";
 import { ScrollArea } from "./ui/scroll-area";
 import { Sparkles, Save, Redo } from "lucide-react";
+import { useMealPlan } from "@/contexts/meal-plan-context";
+import type { Recipe } from "@/ai/schemas";
 
 
 const formSchema = z.object({
@@ -48,6 +50,7 @@ interface GenerateRecipeModalProps {
 
 export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProps) {
   const { toast } = useToast();
+  const { addRecipe } = useMealPlan();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [generatedRecipe, setGeneratedRecipe] = useState<GeneratedRecipe | null>(null);
@@ -79,6 +82,18 @@ export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProp
   const handleSave = async () => {
     if (!generatedRecipe) return;
     setIsSaving(true);
+    
+    // Convert GeneratedRecipe to the meal plan Recipe schema
+    const recipeForPlan: Recipe = {
+      ...generatedRecipe,
+      day: 'Monday', // Assign a default day, user can change later
+      mealType: 'dinner', // Assign a default meal type
+    };
+    
+    // Add to our front-end state
+    addRecipe(recipeForPlan);
+
+    // Also call the "backend" action which just simulates a save
     const result = await saveGeneratedRecipeAction(generatedRecipe);
     setIsSaving(false);
 
