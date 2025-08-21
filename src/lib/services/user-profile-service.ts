@@ -26,10 +26,23 @@ const MOCK_USER_DATA = {
       dailyCalorieGoal: 2200,
     },
     subscription: {
-      tier: 'premium',
+      tier: 'free', // Let's make the mock user a free user to test the quota
     },
     aiUsage: {
       '202407': { mealGenerations: 2 },
+    },
+  },
+   'pro_user_456': {
+    preferences: {
+      dietaryRestrictions: [],
+      allergies: [],
+      dailyCalorieGoal: 2000,
+    },
+    subscription: {
+      tier: 'premium',
+    },
+    aiUsage: {
+      '202407': { mealGenerations: 50 }, // well over the free limit
     },
   },
 };
@@ -45,7 +58,7 @@ export async function getUserProfile(uid: string): Promise<any> {
   console.log(`[UserProfileService] Fetching profile for user: ${uid}`);
   // In a real implementation, you would fetch this from Firestore.
   // e.g., await db.collection('users').doc(uid).get();
-  return MOCK_USER_DATA['user123'] || null;
+  return MOCK_USER_DATA[uid as keyof typeof MOCK_USER_DATA] || null;
 }
 
 /**
@@ -61,7 +74,6 @@ export async function getUserPreferences(uid: string): Promise<UserPreferences |
 
 /**
  * Verifies if a user is within their allowed AI generation quota.
- * This is a placeholder and uses mock data.
  *
  * @param uid The user's unique ID.
  * @throws An error if the user's quota is exceeded.
@@ -74,16 +86,22 @@ export async function verifyGenerationQuota(uid: string): Promise<void> {
     throw new Error('User not found.');
   }
 
-  const isPremium = user.subscription?.tier === 'premium';
-  const quota = isPremium ? 999 : 5; // As per your spec
+  // Pro users have unlimited generations
+  if (user.subscription?.tier === 'premium') {
+    console.log(`[UserProfileService] User ${uid} is Premium. Skipping quota check.`);
+    return;
+  }
+
+  // Free users are limited to 5 generations per month
+  const quota = 5; 
 
   const currentMonthKey = new Date().toISOString().slice(0, 7).replace('-', '');
   const currentUsage = user.aiUsage?.[currentMonthKey]?.mealGenerations || 0;
 
-  console.log(`[UserProfileService] User: ${uid}, Usage: ${currentUsage}/${quota}`);
+  console.log(`[UserProfileService] User: ${uid}, Plan: Free, Usage: ${currentUsage}/${quota}`);
 
   if (currentUsage >= quota) {
-    throw new Error('Monthly generation quota exceeded.');
+    throw new Error('Your monthly generation quota has been reached. Please upgrade to Pro for unlimited generations.');
   }
 }
 
@@ -98,5 +116,14 @@ export async function incrementUsageQuota(uid: string): Promise<void> {
   // In a real implementation, you would use Firestore FieldValue.increment(1)
   // to atomically update the count for the current month.
   // e.g., db.collection('users').doc(uid).update({ 'aiUsage.202407.mealGenerations': FieldValue.increment(1) });
-  console.log('[UserProfileService] Usage incremented (mock).');
+  
+  // This mock implementation is not persistent.
+  const user = MOCK_USER_DATA[uid as keyof typeof MOCK_USER_DATA];
+  if (user) {
+      const currentMonthKey = new Date().toISOString().slice(0, 7).replace('-', '');
+      if (!user.aiUsage) user.aiUsage = {};
+      if (!user.aiUsage[currentMonthKey]) user.aiUsage[currentMonthKey] = { mealGenerations: 0 };
+      user.aiUsage[currentMonthKey].mealGenerations += 1;
+      console.log(`[UserProfileService] Usage incremented (mock). New count: ${user.aiUsage[currentMonthKey].mealGenerations}`);
+  }
 }

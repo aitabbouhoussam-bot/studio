@@ -1,3 +1,4 @@
+
 import { SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +12,7 @@ const tiers = [
     frequency: "/month",
     description: "Get started with the basics.",
     features: [
-      "1 meal plan generation per week",
+      "5 AI meal generations per month",
       "Basic dietary preferences",
       "Standard shopping list",
     ],
@@ -28,7 +29,8 @@ const tiers = [
       "Unlimited meal plan generations",
       "Advanced dietary options (Keto, Paleo, etc.)",
       "Smart, categorized shopping lists",
-      "Save and track favorite meals",
+      "Family sharing features",
+      "Export grocery lists (CSV, PDF)",
       "Priority support",
     ],
     cta: "Upgrade to Pro",
@@ -42,7 +44,7 @@ const tiers = [
     description: "Meal planning for the whole family.",
     features: [
         "All Pro features",
-        "Up to 4 family member profiles",
+        "Up to 5 family member profiles",
         "Combined family shopping lists",
         "Kid-friendly recipe options",
     ],
