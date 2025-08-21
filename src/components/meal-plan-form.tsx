@@ -260,7 +260,7 @@ export function MealPlanForm({ onSubmit, isLoading }: MealPlanFormProps) {
               {isLoading && (
                 <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
               )}
-              Generate Meal Plan
+              Plan This Week
             </Button>
           </form>
         </Form>
