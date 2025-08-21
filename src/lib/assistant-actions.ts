@@ -2,7 +2,7 @@
 "use server";
 
 import { z } from "zod";
-import chefAssistant from "@/ai/flows/chef-assistant-flow";
+import { chefAssistantFlow } from "@/ai/flows/chef-assistant-flow";
 import {
   ChatInputSchema,
   type ChatOutput,
@@ -23,7 +23,7 @@ export async function chatWithAssistant(
 
     const validatedInput = ChatInputSchema.parse({ messages: conversationHistory });
     
-    const result = await chefAssistant(validatedInput);
+    const result = await chefAssistantFlow(validatedInput);
 
     return { success: true, data: result };
   } catch (error) {

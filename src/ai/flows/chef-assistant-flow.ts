@@ -12,7 +12,7 @@ import {
   type ChatOutput,
 } from '../schemas/chef-assistant-schemas';
 
-const chefAssistantFlow = ai.defineFlow(
+export const chefAssistantFlow = ai.defineFlow(
   {
     name: 'chefAssistantFlow',
     inputSchema: ChatInputSchema,
@@ -82,6 +82,3 @@ Your goal is not just to provide recipes, but to inspire confidence, creativity,
     );
   }
 );
-
-
-export default chefAssistantFlow;
