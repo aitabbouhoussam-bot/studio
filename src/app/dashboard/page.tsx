@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { GenerateMealPlanOutput } from "@/ai/schemas";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ListTodo, PlusCircle } from "lucide-react";
+import { ListTodo, PlusCircle, ArrowRight } from "lucide-react";
 
 const formSchema = z.object({
   dietaryPreferences: z.string(),
@@ -41,10 +41,21 @@ export default function DashboardPage() {
         description: "Your new meal plan has been generated.",
       });
     } else {
-      toast({
+       const isQuotaError = result.error?.includes("quota has been reached");
+       
+       toast({
         variant: "destructive",
-        title: "Oh no! Something went wrong.",
-        description: result.error || "There was a problem generating your meal plan.",
+        title: isQuotaError ? "Monthly Limit Reached" : "Oh no! Something went wrong.",
+        description: (
+          <div>
+            <p>{result.error || "There was a problem generating your meal plan."}</p>
+            {isQuotaError && (
+               <Button asChild variant="link" className="p-0 h-auto font-semibold text-destructive-foreground">
+                  <Link href="/pricing">Upgrade to Pro <ArrowRight className="ml-2 h-4 w-4" /></Link>
+               </Button>
+            )}
+          </div>
+        )
       });
     }
     setIsLoading(false);
