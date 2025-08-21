@@ -4,7 +4,7 @@
  * @fileOverview A conversational AI flow for the AI Chef Assistant.
  */
 
-import { ai } from '@/ai/genkit';
+import { chefModel } from '@/ai/genkit';
 import {
   AssistantRequest,
   AssistantRequestSchema,
@@ -100,28 +100,17 @@ If you don't know something:
 - Ask about how their cooking went.
 `;
 
-const chefAssistantFlow = ai.defineFlow(
-  {
-    name: 'chefAssistantFlow',
-    inputSchema: AssistantRequestSchema,
-    outputSchema: AssistantResponseSchema,
-  },
-  async ({ history }) => {
-
-    const model = ai.getModel({
-        model: 'googleai/gemini-1.5-flash',
-        config: {
-            temperature: 0.7,
-            topP: 0.9,
-            maxOutputTokens: 2048,
-        }
-    });
-
-    const response = await model.generate({
+const chefAssistantFlow = async ({ history }: AssistantRequest) => {
+    
+    const response = await chefModel.generate({
       system: systemPrompt,
       history: history,
+      config: {
+        temperature: 0.7,
+        topP: 0.9,
+        maxOutputTokens: 2048,
+      }
     });
 
     return response.text;
-  }
-);
+  };
