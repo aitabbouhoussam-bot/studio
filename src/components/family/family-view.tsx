@@ -5,8 +5,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import { Copy, Users } from "lucide-react";
+import { Copy, Users, MoreHorizontal, UserCog, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useState } from "react";
 
 
 interface FamilyMember {
@@ -27,7 +46,8 @@ interface FamilyViewProps {
 
 export function FamilyView({ family }: FamilyViewProps) {
   const { toast } = useToast();
-  
+  const [members, setMembers] = useState(family.members);
+
   const copyInviteCode = () => {
     navigator.clipboard.writeText(family.inviteCode);
     toast({
@@ -35,6 +55,19 @@ export function FamilyView({ family }: FamilyViewProps) {
         description: "Invite code has been copied to your clipboard.",
     });
   }
+
+  const handleRemoveMember = (uid: string) => {
+    // This is a mock function. In a real app, this would call a server action.
+    console.log(`Removing member with uid: ${uid}`);
+    setMembers(currentMembers => currentMembers.filter(m => m.uid !== uid));
+    toast({
+        title: "Member Removed",
+        description: "The family member has been removed successfully.",
+    });
+  }
+  
+  // Assuming the current user is the owner for demo purposes
+  const isOwner = true; 
 
   return (
     <div className="space-y-8">
@@ -69,24 +102,65 @@ export function FamilyView({ family }: FamilyViewProps) {
         </Card>
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline">Members ({family.members.length})</CardTitle>
+                <CardTitle className="font-headline">Members ({members.length})</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-                {family.members.map(member => (
-                    <div key={member.uid} className="flex items-center justify-between">
+            <CardContent className="space-y-1">
+                {members.map(member => (
+                    <div key={member.uid} className="flex items-center justify-between p-2 rounded-md hover:bg-secondary/50">
                         <div className="flex items-center gap-4">
                             <Avatar>
                                 <AvatarImage src={member.photoURL} alt={member.displayName} />
                                 <AvatarFallback>{member.displayName.charAt(0)}</AvatarFallback>
                             </Avatar>
                             <div>
-                                <p className="font-medium">{member.displayName}</p>
+                                <p className="font-medium">{member.displayName} {member.role === 'owner' ? '(You)' : ''}</p>
                                 <p className="text-sm text-muted-foreground">uid: {member.uid}</p>
                             </div>
                         </div>
-                        <Badge variant={member.role === 'owner' ? 'default' : 'secondary'} className="capitalize">
-                            {member.role}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                            <Badge variant={member.role === 'owner' ? 'default' : 'secondary'} className="capitalize">
+                                {member.role}
+                            </Badge>
+                            {isOwner && member.role !== 'owner' && (
+                                 <AlertDialog>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon">
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                            <DropdownMenuItem disabled>
+                                                <UserCog className="mr-2 h-4 w-4" />
+                                                <span>Change Role</span>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <AlertDialogTrigger asChild>
+                                                <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                                    <Trash2 className="mr-2 h-4 w-4" />
+                                                    <span>Remove</span>
+                                                </DropdownMenuItem>
+                                            </AlertDialogTrigger>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This action cannot be undone. This will permanently remove {member.displayName} from the family.
+                                        </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => handleRemoveMember(member.uid)} className="bg-destructive hover:bg-destructive/90">
+                                            Yes, remove member
+                                        </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            )}
+                        </div>
                     </div>
                 ))}
             </CardContent>
