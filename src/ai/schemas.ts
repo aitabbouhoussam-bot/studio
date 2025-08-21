@@ -24,7 +24,7 @@ const NutritionInfoSchema = z.object({
   fat: z.number().describe('in grams'),
 });
 
-const RecipeSchema = z.object({
+export const RecipeSchema = z.object({
   day: z.enum(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']),
   mealType: z.enum(['breakfast', 'lunch', 'dinner', 'snack']),
   title: z.string(),
@@ -44,3 +44,11 @@ export const GenerateMealPlanOutputSchema = z.object({
   recipes: z.array(RecipeSchema),
 });
 export type GenerateMealPlanOutput = z.infer<typeof GenerateMealPlanOutputSchema>;
+
+
+export const RecipeInputSchema = z.object({
+    preferences: z.any().describe("The user's meal plan preferences object."),
+    servings: z.number().positive().describe("The number of servings for the recipe."),
+    day: z.enum(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']),
+    mealType: z.enum(['breakfast', 'lunch', 'dinner']),
+});
