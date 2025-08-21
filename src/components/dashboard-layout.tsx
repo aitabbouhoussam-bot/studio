@@ -27,6 +27,7 @@ import {
   LayoutDashboard,
   CalendarDays,
   CreditCard,
+  Refrigerator,
 } from "lucide-react";
 import { Icons } from "./icons";
 import { Button } from "./ui/button";
@@ -99,6 +100,19 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                   <Link href="/dashboard/recipes">
                     <BookOpen />
                     <span>Recipes</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  href="/dashboard/pantry"
+                  asChild
+                  isActive={isActive("/dashboard/pantry")}
+                  tooltip="Pantry"
+                >
+                  <Link href="/dashboard/pantry">
+                    <Refrigerator />
+                    <span>Pantry</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
