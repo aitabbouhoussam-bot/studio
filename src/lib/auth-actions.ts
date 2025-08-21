@@ -2,9 +2,6 @@
 'use server';
 
 import { z } from 'zod';
-import { auth, db } from '@/lib/firebase';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 const authSchema = z.object({
   email: z.string().email(),
@@ -13,49 +10,32 @@ const authSchema = z.object({
 
 export async function signUpWithEmailAndPassword(values: z.infer<typeof authSchema>) {
   try {
+    // This is a placeholder. In a real app, you would use Firebase Admin SDK
+    // or call a dedicated authentication service from here.
     const validatedValues = authSchema.parse(values);
-    const userCredential = await createUserWithEmailAndPassword(auth, validatedValues.email, validatedValues.password);
-    const user = userCredential.user;
-
-    // Create user document in Firestore
-    await setDoc(doc(db, "users", user.uid), {
-      id: user.uid,
-      email: user.email,
-      displayName: user.email?.split('@')[0] || 'User',
-      photoURL: '',
-      createdAt: serverTimestamp(),
-      lastActiveAt: serverTimestamp(),
-      preferences: {
-        dietaryRestrictions: [],
-        allergies: [],
-        budgetLevel: 3,
-        dailyCalorieGoal: 2000,
-        maxCookingTimeMins: 60,
-        defaultServings: 2,
-        dislikedIngredients: [],
-        preferredCuisines: [],
-      },
-      subscription: {
-        tier: 'free',
-        status: 'active',
-        cancelAtPeriodEnd: false,
-      },
-      aiUsage: {},
-      customClaims: { admin: false, premium: false },
-    });
-
-    return { success: true, userId: user.uid };
+    console.log("Signing up with:", validatedValues.email);
+    
+    // Simulate successful user creation
+    const userId = `user_${Math.random().toString(36).substring(2, 15)}`;
+    
+    return { success: true, userId: userId };
   } catch (error: any) {
-    return { success: false, error: error.message };
+    return { success: false, error: "This is a mock error. " + error.message };
   }
 }
 
 export async function signInWithEmailAndPasswordAction(values: z.infer<typeof authSchema>) {
     try {
+        // This is a placeholder. In a real app, you would use Firebase Admin SDK
+        // or call a dedicated authentication service from here.
         const validatedValues = authSchema.parse(values);
-        const userCredential = await signInWithEmailAndPassword(auth, validatedValues.email, validatedValues.password);
-        return { success: true, userId: userCredential.user.uid };
+        console.log("Signing in with:", validatedValues.email);
+
+        // Simulate successful sign-in
+        const userId = `user_${Math.random().toString(36).substring(2, 15)}`;
+
+        return { success: true, userId: userId };
     } catch (error: any) {
-        return { success: false, error: error.message };
+        return { success: false, error: "This is a mock error. " + error.message };
     }
 }
