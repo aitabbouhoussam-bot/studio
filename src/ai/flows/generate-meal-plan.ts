@@ -45,12 +45,13 @@ USER REQUIREMENTS:
 CRITICAL REQUIREMENTS:
 1. Generate exactly 7 days of meals (Monday-Sunday)
 2. Each day must include breakfast, lunch, and dinner (snacks optional)
-3. Respect ALL dietary restrictions and allergies absolutely
-4. Provide accurate nutritional information for each recipe
-5. Ensure variety in cuisines and cooking methods
-6. All ingredients must specify exact quantities, units, and a valid category
-7. Instructions must be clear, step-by-step, and easy to follow
-8. The 'difficulty' field must be 'easy', 'medium', 'hard'
+3. For each recipe, provide a valid and publicly accessible \`imageUrl\` of the finished dish. Use placeholder services if needed.
+4. Respect ALL dietary restrictions and allergies absolutely
+5. Provide accurate nutritional information for each recipe
+6. Ensure variety in cuisines and cooking methods
+7. All ingredients must specify exact quantities, units, and a valid category
+8. Instructions must be clear, step-by-step, and easy to follow
+9. The 'difficulty' field must be 'easy', 'medium', 'hard'
 
 NUTRITION ACCURACY: Ensure all calorie and macronutrient calculations are accurate. This information affects user health decisions.
 

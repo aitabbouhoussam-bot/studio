@@ -37,7 +37,7 @@ export function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDetailModal
         <div className="grid gap-6 py-4 max-h-[70vh] overflow-y-auto pr-4">
             <div className="relative h-64 w-full rounded-md overflow-hidden">
                  <Image
-                    src="https://placehold.co/600x400.png"
+                    src={recipe.imageUrl || "https://placehold.co/600x400.png"}
                     layout="fill"
                     objectFit="cover"
                     alt={recipe.title}

@@ -29,6 +29,7 @@ export const RecipeSchema = z.object({
   mealType: z.enum(['breakfast', 'lunch', 'dinner', 'snack']),
   title: z.string(),
   description: z.string().optional(),
+  imageUrl: z.string().url().describe("A URL to a high-quality, vibrant, and appetizing photo of the finished dish."),
   ingredients: z.array(IngredientSchema),
   instructions: z.array(z.string()),
   nutrition: NutritionInfoSchema,

@@ -36,15 +36,16 @@ TARGETED MEAL SLOT:
 
 CRITICAL REQUIREMENTS:
 1. Generate exactly ONE recipe.
-2. The recipe must be appropriate for the specified Day and Meal Type.
-3. Respect ALL dietary restrictions and allergies absolutely.
-4. Keep cooking times within the specified limit.
-5. Provide accurate nutritional information for the recipe.
-6. Use ingredients appropriate for the budget level.
-7. All ingredients must specify exact quantities, units, and a valid category.
-8. Instructions must be clear, step-by-step, and easy to follow.
-9. The 'difficulty' field must be 'easy', 'medium', or 'hard'.
-10. Categorize each ingredient correctly for shopping list generation. Use one of: 'produce', 'protein', 'dairy', 'pantry', 'frozen', 'bakery', 'beverages'.
+2. Provide a valid and publicly accessible \`imageUrl\` of the finished dish. Use placeholder services if needed.
+3. The recipe must be appropriate for the specified Day and Meal Type.
+4. Respect ALL dietary restrictions and allergies absolutely.
+5. Keep cooking times within the specified limit.
+6. Provide accurate nutritional information for the recipe.
+7. Use ingredients appropriate for the budget level.
+8. All ingredients must specify exact quantities, units, and a valid category.
+9. Instructions must be clear, step-by-step, and easy to follow.
+10. The 'difficulty' field must be 'easy', 'medium', or 'hard'.
+11. Categorize each ingredient correctly for shopping list generation. Use one of: 'produce', 'protein', 'dairy', 'pantry', 'frozen', 'bakery', 'beverages'.
 
 NUTRITION ACCURACY: Ensure all calorie and macronutrient calculations are accurate. This information affects user health decisions.
 
