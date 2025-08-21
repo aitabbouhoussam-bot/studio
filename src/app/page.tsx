@@ -53,11 +53,11 @@ export default function Home() {
                 </div>
               </div>
               <Image
-                src="https://firebasestorage.googleapis.com/v0/b/mealgenius-sf4j4.appspot.com/o/user_uploads%2Ftmp-1-1725514652281.png?alt=media&token=8753239a-76d7-4660-8451-24838634e060"
+                src="https://firebasestorage.googleapis.com/v0/b/mealgenius-sf4j4.appspot.com/o/user_uploads%2Ftmp-1-1725516104868.png?alt=media&token=e11059f8-b615-4df2-a391-9e7239121c29"
                 width="650"
                 height="650"
-                alt="Feastly Logo"
-                className="mx-auto aspect-square overflow-hidden rounded-xl object-contain sm:w-full lg:order-last"
+                alt="Feastly app on a tablet in a kitchen"
+                className="mx-auto aspect-square overflow-hidden rounded-xl object-cover sm:w-full lg:order-last"
               />
             </div>
           </div>
