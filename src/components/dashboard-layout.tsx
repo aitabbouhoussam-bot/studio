@@ -26,6 +26,7 @@ import {
   BookOpen,
   LayoutDashboard,
   CalendarDays,
+  CreditCard,
 } from "lucide-react";
 import { Icons } from "./icons";
 import { Button } from "./ui/button";
@@ -171,6 +172,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Settings</span>
                 </DropdownMenuItem>
+                 <DropdownMenuItem asChild>
+                    <Link href="/dashboard/billing">
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      <span>Billing</span>
+                    </Link>
+                  </DropdownMenuItem>
                 <DropdownMenuItem>
                     <Crown className="mr-2 h-4 w-4" />
                     <span>Upgrade</span>
