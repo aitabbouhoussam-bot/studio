@@ -23,11 +23,11 @@ const planCache = new Map<string, GenerateMealPlanOutput>();
  * @param servings The number of servings for the plan.
  * @returns A unique SHA-256 hash key.
  */
-export function generateCacheKey(
+export async function generateCacheKey(
   preferences: UserPreferences,
   weekStart: string,
   servings: number
-): string {
+): Promise<string> {
   const prefString = JSON.stringify(preferences, Object.keys(preferences).sort());
   const hash = createHash('sha256');
   hash.update(prefString + weekStart + servings);

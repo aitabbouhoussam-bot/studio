@@ -52,7 +52,7 @@ const RecipeSchema = z.object({
   tags: z.array(z.string()).optional(),
 });
 
-const GenerateMealPlanOutputSchema = z.object({
+export const GenerateMealPlanOutputSchema = z.object({
   recipes: z.array(RecipeSchema),
 });
 export type GenerateMealPlanOutput = z.infer<typeof GenerateMealPlanOutputSchema>;

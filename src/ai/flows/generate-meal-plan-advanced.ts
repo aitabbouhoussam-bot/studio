@@ -57,7 +57,7 @@ export async function generateMealPlan(input: GenerateMealPlanAdvancedInput): Pr
   const weekStart = nextMonday.toISOString().split('T')[0];
 
   // 3. Check cache for existing plan
-  const cacheKey = generateCacheKey(preferences, weekStart, servings);
+  const cacheKey = await generateCacheKey(preferences, weekStart, servings);
   const cachedPlan = await checkPlanCache(cacheKey);
   if (cachedPlan) {
     return cachedPlan;
