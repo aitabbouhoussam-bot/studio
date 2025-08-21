@@ -12,10 +12,6 @@ import {
   type ChatOutput,
 } from '../schemas/chef-assistant-schemas';
 
-export async function chefAssistant(input: ChatInput): Promise<ChatOutput> {
-  return chefAssistantFlow(input);
-}
-
 const chefAssistantFlow = ai.defineFlow(
   {
     name: 'chefAssistantFlow',
@@ -51,3 +47,6 @@ Start the conversation by introducing yourself and asking how you can help.`;
     );
   }
 );
+
+
+export default chefAssistantFlow;

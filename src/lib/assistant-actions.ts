@@ -2,7 +2,7 @@
 "use server";
 
 import { z } from "zod";
-import { chefAssistant } from "@/ai/flows/chef-assistant-flow";
+import chefAssistant from "@/ai/flows/chef-assistant-flow";
 import {
   ChatInputSchema,
   type ChatOutput,
