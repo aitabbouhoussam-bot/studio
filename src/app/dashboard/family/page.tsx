@@ -5,6 +5,7 @@ import { useState } from "react";
 import { CreateFamilyForm } from "@/components/family/create-family-form";
 import { FamilyView } from "@/components/family/family-view";
 import { useToast } from "@/hooks/use-toast";
+import { createFamilyAction, joinFamilyAction } from "@/lib/family-actions";
 
 // Mock data, in a real app this would come from your backend/context
 const mockFamily = null; 
@@ -27,54 +28,42 @@ export default function FamilyPage() {
 
   const handleCreateFamily = async (name: string) => {
     setIsLoading(true);
-    // In a real app, you would call a server action here to create the family
-    console.log("Creating family:", name);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const newFamily = {
-        id: `fam_${Math.random().toString(36).substring(2, 9)}`,
-        name: name,
-        inviteCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
-        members: [
-            { uid: 'user1', displayName: 'You', role: 'owner', photoURL: 'https://placehold.co/40x40.png' },
-        ]
-    };
-
-    setFamily(newFamily);
-    toast({
-      title: "Family Created!",
-      description: `Your family "${name}" has been created.`,
-    });
+    const result = await createFamilyAction(name);
     setIsLoading(false);
+
+    if (result.success && result.data) {
+        setFamily(result.data);
+        toast({
+            title: "Family Created!",
+            description: `Your family "${name}" has been created.`,
+        });
+    } else {
+        toast({
+            variant: "destructive",
+            title: "Error Creating Family",
+            description: result.error || "An unknown error occurred.",
+        });
+    }
   };
   
-    const handleJoinFamily = async (inviteCode: string) => {
+  const handleJoinFamily = async (inviteCode: string) => {
     setIsLoading(true);
-    // In a real app, you would call a server action here to join a family
-    console.log("Joining family with code:", inviteCode);
-
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // For this mock, we'll just create a sample family.
-    const joinedFamily = {
-      id: `fam_${Math.random().toString(36).substring(2, 9)}`,
-      name: "The Sampletons",
-      inviteCode: inviteCode,
-      members: [
-        { uid: 'user_owner', displayName: 'Owner', role: 'owner', photoURL: 'https://placehold.co/40x40.png' },
-        { uid: 'user_you', displayName: 'You', role: 'member', photoURL: 'https://placehold.co/40x40.png' }
-      ]
-    };
-
-    setFamily(joinedFamily);
-    toast({
-      title: "Successfully Joined Family!",
-      description: "You are now a member of The Sampletons.",
-    });
+    const result = await joinFamilyAction(inviteCode);
     setIsLoading(false);
+    
+    if (result.success && result.data) {
+        setFamily(result.data);
+        toast({
+            title: "Successfully Joined Family!",
+            description: `You are now a member of "${result.data.name}".`,
+        });
+    } else {
+        toast({
+            variant: "destructive",
+            title: "Error Joining Family",
+            description: result.error || "Could not join the family. Please check the code and try again.",
+        });
+    }
   };
 
   if (family) {
