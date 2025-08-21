@@ -25,10 +25,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { addRecipeAction } from "@/lib/recipe-actions";
 import { Icons } from "./icons";
 import { PlusCircle, Trash2 } from "lucide-react";
 import { ScrollArea } from "./ui/scroll-area";
+import { addManualRecipeAction } from "@/lib/recipe-actions";
 
 const ingredientSchema = z.object({
   name: z.string().min(1, "Ingredient name is required."),
@@ -79,7 +79,7 @@ export function AddRecipeModal({ isOpen, onClose }: AddRecipeModalProps) {
   const { isSubmitting } = form.formState;
 
   const handleSubmit = async (values: RecipeFormValues) => {
-    const result = await addRecipeAction(values);
+    const result = await addManualRecipeAction(values);
 
     if (result.success) {
       toast({

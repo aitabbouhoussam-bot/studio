@@ -11,10 +11,10 @@ import { useToast } from "@/hooks/use-toast";
 import type { GenerateMealPlanOutput } from "@/ai/schemas";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ListTodo, PlusCircle, ArrowRight, MessageSquare, ChefHat } from "lucide-react";
+import { ListTodo, PlusCircle, ArrowRight, ChefHat } from "lucide-react";
 import { useState } from "react";
-import { AddRecipeModal } from "@/components/add-recipe-modal";
 import { AiChefAssistant } from "@/components/ai-chef-assistant";
+import { GenerateRecipeModal } from "@/components/generate-recipe-modal";
 
 const formSchema = z.object({
   dietaryPreferences: z.string(),
@@ -68,7 +68,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <AddRecipeModal isOpen={isAddRecipeModalOpen} onClose={() => setIsAddRecipeModalOpen(false)} />
+      <GenerateRecipeModal isOpen={isAddRecipeModalOpen} onClose={() => setIsAddRecipeModalOpen(false)} />
       <AiChefAssistant isOpen={isChefAssistantOpen} onClose={() => setIsChefAssistantOpen(false)} />
 
       <div className="space-y-8">
