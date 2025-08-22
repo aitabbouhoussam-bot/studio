@@ -48,10 +48,10 @@ export async function getAssistantResponseAction({
       throw new Error("Last message must be from user to generate a response.");
     }
 
-    // Convert to Genkit message format
+    // Convert to Genkit message format, defaulting to empty string if content is missing
     const messages = history.map(msg => ({
         role: msg.role === 'model' ? 'model' : 'user',
-        content: [{ text: msg.content }]
+        content: [{ text: msg.content || '' }] 
     }));
 
     const response = await ai.generate({
@@ -68,7 +68,7 @@ export async function getAssistantResponseAction({
     const responseText = response.text;
 
     if (!responseText) {
-      throw new Error("AI returned an empty response.");
+      throw new Error("AI returned an empty or invalid response.");
     }
 
     return {
