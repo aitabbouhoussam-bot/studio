@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useState, useRef, useEffect, FormEvent } from 'react';
 import type { ChatHistory } from '@/ai/schemas/assistant-schemas';
-import { getAssistantResponse } from '@/lib/actions/assistant-actions';
+import { getAssistantResponseAction } from '@/lib/actions/assistant-actions';
 import { Icons } from '../icons';
 import ReactMarkdown from 'react-markdown';
 import { Send, Sparkles } from 'lucide-react';
@@ -62,7 +62,7 @@ export function AiChefAssistant({ isOpen, onOpenChange }: AiChefAssistantProps) 
     setIsLoading(true);
 
     try {
-      const result = await getAssistantResponse({ history: newMessages });
+      const result = await getAssistantResponseAction({ history: newMessages });
 
       if (result.success && result.data) {
         setMessages((prev) => [

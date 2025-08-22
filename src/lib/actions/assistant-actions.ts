@@ -1,18 +1,18 @@
 
 'use server';
 
-import { runChefAssistant } from '@/ai/flows/chef-assistant-flow';
+import { getAssistantResponse } from '@/ai/flows/chef-assistant-flow';
 import {
   AssistantRequest,
   AssistantRequestSchema,
 } from '@/ai/schemas/assistant-schemas';
 import { z } from 'zod';
 
-export async function getAssistantResponse(input: AssistantRequest) {
+export async function getAssistantResponseAction(input: AssistantRequest) {
   'use server';
   try {
     const validatedInput = AssistantRequestSchema.parse(input);
-    const response = await runChefAssistant(validatedInput);
+    const response = await getAssistantResponse(validatedInput);
     return { success: true, data: response };
   } catch (error) {
     console.error('[Assistant Action Error]', error);
