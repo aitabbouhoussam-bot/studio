@@ -1,3 +1,4 @@
+
 'use server';
 
 import { googleAI } from '@genkit-ai/googleai';
@@ -6,7 +7,11 @@ import type { Message } from '@/ai/schemas/assistant-schemas';
 
 // Initialize Genkit with Google AI
 const ai = genkit({
-  plugins: [googleAI()],
+  plugins: [
+    googleAI({
+      apiKey: process.env.GEMINI_API_KEY,
+    }),
+  ],
 });
 
 const CHEF_SYSTEM_PROMPT = `You are Chef AI, a world-class culinary expert and passionate cooking mentor. You have extensive knowledge of global cuisines, cooking techniques, nutrition, and food science.
@@ -34,38 +39,21 @@ export async function getAssistantResponseAction({
   history: Message[] 
 }): Promise<{ success: boolean; data?: string; error?: string }> {
   try {
-    console.log('🔍 Starting assistant action...');
-    console.log('📝 Message history length:', history.length);
-    
     // Validate input
     if (!history || history.length === 0) {
-      return {
-        success: false,
-        error: 'No message history provided'
-      };
+      throw new Error("No message history provided.");
     }
-
-    // Get the latest user message
     const lastMessage = history[history.length - 1];
-    if (!lastMessage || lastMessage.role !== 'user') {
-      return {
-        success: false,
-        error: 'Last message must be from user'
-      };
+    if (lastMessage.role !== 'user') {
+      throw new Error("Last message must be from user to generate a response.");
     }
-
-    console.log('📤 User message:', lastMessage.content);
 
     // Convert to Genkit message format
     const messages = history.map(msg => ({
-        role: msg.role === 'user' ? 'user' : 'model',
+        role: msg.role === 'model' ? 'model' : 'user',
         content: [{ text: msg.content }]
     }));
 
-
-    console.log('🤖 Calling Genkit AI...');
-
-    // Call Genkit with proper error handling
     const response = await ai.generate({
       model: 'googleai/gemini-1.5-flash',
       system: CHEF_SYSTEM_PROMPT,
@@ -77,24 +65,15 @@ export async function getAssistantResponseAction({
       }
     });
 
-    console.log('📊 AI Response received');
-    
     const responseText = response.text;
 
-    // Validate response content
-    if (!responseText || typeof responseText !== 'string' || responseText.trim() === '') {
-      console.log('❌ Empty or invalid response text');
-      return {
-        success: false,
-        error: 'AI returned empty response'
-      };
+    if (!responseText) {
+      throw new Error("AI returned an empty response.");
     }
-
-    console.log('✅ Success! Response length:', responseText.length);
 
     return {
       success: true,
-      data: responseText.trim()
+      data: responseText,
     };
 
   } catch (error: any) {
@@ -102,18 +81,16 @@ export async function getAssistantResponseAction({
     let errorMessage = 'An unexpected error occurred';
     
     if (error.message?.includes('API key')) {
-      errorMessage = 'API key configuration error';
+      errorMessage = 'The AI service is not configured correctly. Please contact support.';
     } else if (error.message?.includes('quota')) {
-      errorMessage = 'API quota exceeded';
-    } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
-      errorMessage = 'Network connection error';
+      errorMessage = 'The AI service is temporarily unavailable due to high demand. Please try again later.';
     } else if (error.message) {
       errorMessage = error.message;
     }
     
     return {
       success: false,
-      error: errorMessage
+      error: `Failed to get assistant response: ${errorMessage}`
     };
   }
 }

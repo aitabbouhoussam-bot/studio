@@ -32,14 +32,21 @@ export async function addManualRecipeAction(values: z.infer<typeof manualRecipeS
     console.log(`[RecipeAction] Saving manual recipe for user: ${userId}`);
     console.log("[RecipeAction] Recipe Data:", validatedData);
 
+    // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Simulate a potential error
+    if (validatedData.title.toLowerCase().includes("error")) {
+        throw new Error("Simulated database error saving recipe.");
+    }
+
     const recipeId = `recipe_${Date.now()}`;
 
     return { success: true, recipeId: recipeId };
   } catch (error) {
-    console.error("Error adding recipe:", error);
+    console.error("[Action Error: addManualRecipeAction]", error);
     if (error instanceof z.ZodError) {
-      return { success: false, error: "Invalid data provided." };
+      return { success: false, error: "Invalid data provided. Please check the form." };
     }
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
     return { success: false, error: `Failed to save recipe: ${errorMessage}` };
@@ -54,11 +61,16 @@ export async function generateRecipeAction(values: z.infer<typeof generateRecipe
     try {
         const validatedData = generateRecipeSchema.parse(values);
         const recipe = await generateRecipe(validatedData.prompt);
+        
+        if (!recipe || !recipe.title) {
+            throw new Error("The AI failed to generate a valid recipe structure.");
+        }
+
         return { success: true, data: recipe };
     } catch (error) {
-        console.error("Error generating recipe:", error);
+        console.error("[Action Error: generateRecipeAction]", error);
         if (error instanceof z.ZodError) {
-            return { success: false, error: "Invalid data provided." };
+            return { success: false, error: "Invalid prompt provided." };
         }
         const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
         return { success: false, error: `Failed to generate recipe: ${errorMessage}` };
@@ -69,14 +81,19 @@ export async function saveGeneratedRecipeAction(recipe: GeneratedRecipe) {
     try {
         const userId = "user123";
         console.log(`[RecipeAction] Saving generated recipe for user: ${userId}`);
-        console.log("[RecipeAction] Recipe Data:", recipe);
+        
+        if (!recipe) {
+            throw new Error("Invalid recipe data provided.");
+        }
+        
+        console.log("[RecipeAction] Recipe Data:", recipe.title);
 
         await new Promise(resolve => setTimeout(resolve, 1000));
         const recipeId = `recipe_${Date.now()}`;
 
         return { success: true, recipeId };
     } catch (error) {
-        console.error("Error saving generated recipe:", error);
+        console.error("[Action Error: saveGeneratedRecipeAction]", error);
         const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
         return { success: false, error: `Failed to save recipe: ${errorMessage}` };
     }

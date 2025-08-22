@@ -46,10 +46,15 @@ export async function generateMealPlanAction(
 
     return { success: true, data: result };
   } catch (error) {
-    console.error(error);
+    console.error("[Action Error: generateMealPlanAction]", error);
     if (error instanceof z.ZodError) {
-      return { success: false, error: "Invalid input." };
+      return { success: false, error: "Invalid input provided. Please check the form fields." };
     }
+    // Check for specific, user-friendly error messages from the service layer
+    if (error instanceof Error && error.message.includes('quota')) {
+        return { success: false, error: error.message };
+    }
+    
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
     return { success: false, error: `Failed to generate meal plan: ${errorMessage}` };
   }

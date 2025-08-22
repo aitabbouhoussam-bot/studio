@@ -48,7 +48,10 @@ export async function createFamilyAction(name: string) {
 
     return { success: true, data: newFamily };
   } catch (error) {
-    console.error('[FamilyAction Error - Create]', error);
+    console.error('[Action Error - Create Family]', error);
+    if (error instanceof z.ZodError) {
+        return { success: false, error: "Invalid family name provided." };
+    }
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
     return { success: false, error: `Failed to create family: ${errorMessage}` };
   }
@@ -83,7 +86,10 @@ export async function joinFamilyAction(inviteCode: string) {
         return { success: true, data: familyToJoin };
 
     } catch (error) {
-        console.error('[FamilyAction Error - Join]', error);
+        console.error('[Action Error - Join Family]', error);
+        if (error instanceof z.ZodError) {
+            return { success: false, error: "Invalid invite code format." };
+        }
         const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
         return { success: false, error: `Failed to join family: ${errorMessage}` };
     }
