@@ -33,7 +33,7 @@ if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
     connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
   }
   // @ts-ignore
-  if (!db.INTERNAL.settings.host.includes('localhost')) {
+  if (!db._settings.host.includes('localhost')) {
     connectFirestoreEmulator(db, 'localhost', 8080);
   }
    // @ts-ignore
