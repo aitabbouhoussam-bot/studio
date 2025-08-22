@@ -26,9 +26,10 @@ import { Icons } from "./icons";
 import { Checkbox } from "./ui/checkbox";
 import { Slider } from "./ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Sparkles } from "lucide-react";
 
-const dietaryOptions = ['vegetarian', 'vegan', 'keto', 'paleo', 'mediterranean'];
-const allergyOptions = ['nuts', 'dairy', 'gluten', 'shellfish', 'eggs', 'soy'];
+const dietaryOptions = ['vegetarian', 'vegan', 'keto', 'paleo', 'mediterranean', 'gluten-free'];
+const allergyOptions = ['nuts', 'dairy', 'shellfish', 'eggs', 'soy', 'wheat'];
 
 const formSchema = z.object({
   dietaryRestrictions: z.array(z.string()).default([]),
@@ -43,7 +44,7 @@ const formSchema = z.object({
 
 
 interface MealPlanFormProps {
-  onSubmit: (data: any) => void; 
+  onSubmit: (data: z.infer<typeof formSchema>) => void; 
   isLoading: boolean;
 }
 
@@ -51,7 +52,7 @@ export function MealPlanForm({ onSubmit, isLoading }: MealPlanFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-        dietaryRestrictions: ['vegetarian'],
+        dietaryRestrictions: [],
         allergies: [],
         budgetLevel: 3,
         dailyCalorieGoal: 2000,
@@ -61,20 +62,6 @@ export function MealPlanForm({ onSubmit, isLoading }: MealPlanFormProps) {
         preferredCuisines: [],
     },
   });
-
-  const handleSubmit = (values: z.infer<typeof formSchema>) => {
-    const submissionData = {
-        dietaryPreferences: values.dietaryRestrictions.join(', ') || 'None',
-        allergies: values.allergies.join(', ') || 'None',
-        calorieIntake: values.dailyCalorieGoal,
-        budgetLevel: values.budgetLevel,
-        defaultServings: values.defaultServings,
-        maxCookingTimeMins: values.maxCookingTimeMins,
-        dislikedIngredients: values.dislikedIngredients,
-        preferredCuisines: values.preferredCuisines,
-    };
-    onSubmit(submissionData);
-  }
 
   return (
     <Card>
@@ -86,7 +73,7 @@ export function MealPlanForm({ onSubmit, isLoading }: MealPlanFormProps) {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             
             <FormField
               control={form.control}
@@ -231,7 +218,7 @@ export function MealPlanForm({ onSubmit, isLoading }: MealPlanFormProps) {
               name="budgetLevel"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Budget Level</FormLabel>
+                  <FormLabel>Budget Level: <span className="font-bold">{field.value} / 5</span></FormLabel>
                    <FormControl>
                      <Controller
                         name="budgetLevel"
@@ -256,11 +243,13 @@ export function MealPlanForm({ onSubmit, isLoading }: MealPlanFormProps) {
               )}
             />
             
-            <Button type="submit" size="lg" disabled={isLoading}>
-              {isLoading && (
+            <Button type="submit" size="lg" disabled={isLoading} className="w-full sm:w-auto">
+              {isLoading ? (
                 <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="mr-2 h-4 w-4" />
               )}
-              Plan This Week
+              Plan My Week
             </Button>
           </form>
         </Form>

@@ -5,10 +5,9 @@ import { generateMealPlan } from "@/ai/flows/generate-meal-plan-advanced";
 import { z } from "zod";
 
 const formSchema = z.object({
-  dietaryPreferences: z.string(),
-  allergies: z.string(),
-  calorieIntake: z.coerce.number(),
-  // Adding the extra fields from the new form
+  dietaryRestrictions: z.array(z.string()),
+  allergies: z.array(z.string()),
+  dailyCalorieGoal: z.coerce.number(),
   budgetLevel: z.number(),
   defaultServings: z.number(),
   maxCookingTimeMins: z.number(),
@@ -24,9 +23,9 @@ export async function generateMealPlanAction(
     const validatedInput = formSchema.parse(input);
 
     const fullPreferences = {
-        dietaryRestrictions: validatedInput.dietaryPreferences.split(',').map(s => s.trim()).filter(Boolean),
-        allergies: validatedInput.allergies.split(',').map(s => s.trim()).filter(Boolean),
-        dailyCalorieGoal: validatedInput.calorieIntake,
+        dietaryRestrictions: validatedInput.dietaryRestrictions,
+        allergies: validatedInput.allergies,
+        dailyCalorieGoal: validatedInput.dailyCalorieGoal,
         budgetLevel: validatedInput.budgetLevel,
         maxCookingTimeMins: validatedInput.maxCookingTimeMins,
         dislikedIngredients: validatedInput.dislikedIngredients,

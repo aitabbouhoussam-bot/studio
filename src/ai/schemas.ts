@@ -65,4 +65,3 @@ export const RecipeInputSchema = z.object({
     day: z.enum(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']),
     mealType: z.enum(['breakfast', 'lunch', 'dinner']),
 });
-

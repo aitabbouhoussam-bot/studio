@@ -99,8 +99,8 @@ const mealPlanPrompt = ai.definePrompt({
     prompt: `You are a professional nutritionist and chef creating a personalized 7-day meal plan.
 
 USER REQUIREMENTS:
-- Dietary restrictions: {{#each preferences.dietaryRestrictions}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
-- Allergies: {{#each preferences.allergies}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
+- Dietary restrictions: {{#if preferences.dietaryRestrictions}}{{#each preferences.dietaryRestrictions}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}{{else}}None{{/if}}
+- Allergies: {{#if preferences.allergies}}{{#each preferences.allergies}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}{{else}}None{{/if}}
 - Daily calorie target: {{{preferences.dailyCalorieGoal}}} calories
 - Maximum cooking time per meal: {{{preferences.maxCookingTimeMins}}} minutes
 - Budget level: {{{preferences.budgetLevel}}}/5 (1=very budget-friendly, 5=premium ingredients)
@@ -112,7 +112,7 @@ CRITICAL REQUIREMENTS:
 1. Generate exactly 7 days of meals (Monday-Sunday)
 2. Each day must include breakfast, lunch, and dinner (snacks optional)
 3. For each recipe, provide a valid and publicly accessible \`imageUrl\` of the finished dish. Use placeholder services if needed.
-4. Respect ALL dietary restrictions and allergies absolutely
+4. Respect ALL dietary restrictions and allergies absolutely. For example, if 'gluten-free' is requested, do not use wheat flour. If 'vegetarian' is requested, do not include any meat or fish.
 5. Keep cooking times within the specified limit
 6. Provide accurate nutritional information for each recipe
 7. Use ingredients appropriate for the budget level
