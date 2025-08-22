@@ -35,23 +35,12 @@ const GeneratedRecipeSchema = z.object({
 });
 export type GeneratedRecipe = z.infer<typeof GeneratedRecipeSchema>;
 
-export async function generateRecipe(promptText: string): Promise<GeneratedRecipe> {
-  return generateRecipeFlow(promptText);
-}
 
-const generateRecipeFlow = ai.defineFlow(
-  {
-    name: 'generateRecipeFlow',
-    inputSchema: z.string(),
-    outputSchema: GeneratedRecipeSchema,
-  },
-  async (promptText) => {
-    
-    const prompt = ai.definePrompt({
-        name: 'generateRecipePrompt',
-        input: { schema: z.string() },
-        output: { schema: GeneratedRecipeSchema },
-        prompt: `You are a creative chef. A user wants a recipe based on this idea: "${promptText}".
+const generateRecipePrompt = ai.definePrompt({
+    name: 'generateRecipePrompt',
+    input: { schema: z.string() },
+    output: { schema: GeneratedRecipeSchema },
+    prompt: `You are a creative chef. A user wants a recipe based on this idea: "{{input}}".
 
 CRITICAL REQUIREMENTS:
 1.  Generate exactly ONE creative, delicious, and easy-to-follow recipe.
@@ -63,12 +52,24 @@ CRITICAL REQUIREMENTS:
 7.  Categorize each ingredient correctly: 'produce', 'protein', 'dairy', 'pantry', 'frozen', 'bakery', 'beverages'.
 
 Generate the single recipe following the provided JSON output schema exactly.`,
-        config: {
-            temperature: 0.8,
-        }
-    });
+    config: {
+        temperature: 0.8,
+    }
+});
 
-    const { output } = await prompt(promptText);
+
+export async function generateRecipe(promptText: string): Promise<GeneratedRecipe> {
+  return generateRecipeFlow(promptText);
+}
+
+const generateRecipeFlow = ai.defineFlow(
+  {
+    name: 'generateRecipeFlow',
+    inputSchema: z.string(),
+    outputSchema: GeneratedRecipeSchema,
+  },
+  async (promptText) => {
+    const { output } = await generateRecipePrompt(promptText);
     return output!;
   }
 );
