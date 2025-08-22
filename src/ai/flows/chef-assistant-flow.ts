@@ -2,24 +2,22 @@
 'use server';
 /**
  * @fileOverview A conversational AI flow for the AI Chef Assistant.
+ * This flow is based on the expert guide for setting up Genkit.
  */
 
 import { ai } from '@/ai/genkit';
 import {
   AssistantRequest,
   AssistantRequestSchema,
-  AssistantResponseSchema,
 } from '../schemas/assistant-schemas';
 import { z } from 'zod';
 
-
 // The main exported function for the AI Chef Assistant
-export async function runChefAssistant(
+export async function getAssistantResponse(
   input: AssistantRequest
 ): Promise<string> {
   return chefAssistantFlow(input);
 }
-
 
 // The full system prompt defining Chef AI's persona and capabilities.
 const systemPrompt = `You are **Chef AI**, a friendly and expert culinary assistant chatbot. You're passionate about food, cooking, and helping people create delicious meals. You combine professional chef knowledge with an approachable, encouraging personality.
@@ -63,7 +61,6 @@ Use this exact markdown format:
 
 **Variations:** [Optional modifications]
 
-
 ### For Cooking Questions:
 - Start with a direct answer
 - Explain the "why" behind techniques
@@ -75,17 +72,6 @@ Use this exact markdown format:
 - Explain how each affects taste/texture
 - Give measurement conversions
 - Note any technique adjustments needed
-
-## Special Handling
-### Dietary Restrictions:
-- Always ask about allergies and restrictions upfront
-- Provide multiple alternatives when suggesting substitutions
-- Explain how substitutions might affect taste/texture
-
-### Limited Ingredients:
-- Work with what they have
-- Suggest minimal additions for maximum impact
-- Offer multiple recipe options from same ingredients
 
 ## Safety & Best Practices
 - Mention food safety temperatures, proper storage, and cross-contamination prevention.
@@ -99,19 +85,25 @@ If you don't know something:
 - Ask about how their cooking went.
 `;
 
-const chefAssistantFlow = async ({ history }: AssistantRequest) => {
-    
-    const chefModel = ai.model('googleai/gemini-1.5-flash');
-    
-    const response = await chefModel.generate({
+const chefAssistantFlow = ai.defineFlow(
+  {
+    name: 'chefAssistantFlow',
+    inputSchema: AssistantRequestSchema,
+    outputSchema: z.string(),
+  },
+  async ({ history }) => {
+    const model = ai.model('gemini-1.5-flash');
+
+    const response = await model.generate({
       system: systemPrompt,
       history: history,
       config: {
         temperature: 0.7,
         topP: 0.9,
         maxOutputTokens: 2048,
-      }
+      },
     });
 
     return response.text;
-  };
+  }
+);
