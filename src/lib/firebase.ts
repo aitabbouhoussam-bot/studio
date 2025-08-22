@@ -29,22 +29,37 @@ if (process.env.NODE_ENV === 'development') {
   // Using try/catch is a more robust way to handle emulator connections
   // as it avoids relying on private SDK properties that might change.
   try {
-    connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
+    const authEmulatorHost = process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST;
+    if (authEmulatorHost) {
+      connectAuthEmulator(auth, `http://${authEmulatorHost}`, { disableWarnings: true });
+    }
   } catch (e) {
     console.log('Auth emulator may already be connected.');
   }
    try {
-    connectFirestoreEmulator(db, 'localhost', 8080);
+    const firestoreEmulatorHost = process.env.NEXT_PUBLIC_FIREBASE_FIRESTORE_EMULATOR_HOST;
+    const firestoreEmulatorPort = process.env.NEXT_PUBLIC_FIREBASE_FIRESTORE_EMULATOR_PORT;
+    if (firestoreEmulatorHost && firestoreEmulatorPort) {
+      connectFirestoreEmulator(db, firestoreEmulatorHost, parseInt(firestoreEmulatorPort, 10));
+    }
   } catch (e) {
     console.log('Firestore emulator may already be connected.');
   }
    try {
-    connectStorageEmulator(storage, 'localhost', 9199);
+    const storageEmulatorHost = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_EMULATOR_HOST;
+    const storageEmulatorPort = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_EMULATOR_PORT;
+    if (storageEmulatorHost && storageEmulatorPort) {
+      connectStorageEmulator(storage, storageEmulatorHost, parseInt(storageEmulatorPort, 10));
+    }
   } catch (e) {
     console.log('Storage emulator may already be connected.');
   }
    try {
-    connectFunctionsEmulator(functions, 'localhost', 5001);
+    const functionsEmulatorHost = process.env.NEXT_PUBLIC_FIREBASE_FUNCTIONS_EMULATOR_HOST;
+    const functionsEmulatorPort = process.env.NEXT_PUBLIC_FIREBASE_FUNCTIONS_EMULATOR_PORT;
+    if (functionsEmulatorHost && functionsEmulatorPort) {
+      connectFunctionsEmulator(functions, functionsEmulatorHost, parseInt(functionsEmulatorPort, 10));
+    }
   } catch (e) {
     console.log('Functions emulator may already be connected.');
   }
