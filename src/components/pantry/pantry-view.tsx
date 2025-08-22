@@ -9,15 +9,15 @@ import { CategorySection } from "./category-section";
 // Mock data based on your detailed schema
 const mockPantryItems = [
   // Produce
-  { id: '1', name: 'Apples', category: 'produce', quantity: 5, unit: 'pieces', expirationDate: new Date(new Date().setDate(new Date().getDate() + 7)), isExpiring: false, isExpired: false, imageUrl: 'https://placehold.co/40x40.png' },
-  { id: '2', name: 'Avocado', category: 'produce', quantity: 2, unit: 'pieces', expirationDate: new Date(new Date().setDate(new Date().getDate() + 2)), isExpiring: true, isExpired: false, imageUrl: 'https://placehold.co/40x40.png' },
+  { id: '1', name: 'Apples', category: 'produce', quantity: 5, unit: 'pieces', expirationDate: new Date(new Date().setDate(new Date().getDate() + 7)), isExpiring: false, isExpired: false, imageUrl: 'https://placehold.co/100x100.png' },
+  { id: '2', name: 'Avocado', category: 'produce', quantity: 2, unit: 'pieces', expirationDate: new Date(new Date().setDate(new Date().getDate() + 2)), isExpiring: true, isExpired: false, imageUrl: 'https://placehold.co/100x100.png' },
   // Dairy
-  { id: '3', name: 'Milk', category: 'dairy', quantity: 1, unit: 'gallons', expirationDate: new Date(new Date().setDate(new Date().getDate() + 5)), isExpiring: false, isExpired: false, imageUrl: 'https://placehold.co/40x40.png' },
-  { id: '4', name: 'Eggs', category: 'dairy', quantity: 12, unit: 'pieces', expirationDate: new Date(new Date().setDate(new Date().getDate() + 20)), isExpiring: false, isExpired: false, imageUrl: 'https://placehold.co/40x40.png' },
-  { id: '5', name: 'Yogurt', category: 'dairy', quantity: 1, unit: 'pieces', expirationDate: new Date(new Date().setDate(new Date().getDate() - 1)), isExpiring: false, isExpired: true, imageUrl: 'https://placehold.co/40x40.png' },
+  { id: '3', name: 'Milk', category: 'dairy', quantity: 1, unit: 'gallons', expirationDate: new Date(new Date().setDate(new Date().getDate() + 5)), isExpiring: false, isExpired: false, imageUrl: 'https://placehold.co/100x100.png' },
+  { id: '4', name: 'Eggs', category: 'dairy', quantity: 12, unit: 'pieces', expirationDate: new Date(new Date().setDate(new Date().getDate() + 20)), isExpiring: false, isExpired: false, imageUrl: 'https://placehold.co/100x100.png' },
+  { id: '5', name: 'Yogurt', category: 'dairy', quantity: 1, unit: 'pieces', expirationDate: new Date(new Date().setDate(new Date().getDate() - 1)), isExpiring: false, isExpired: true, imageUrl: 'https://placehold.co/100x100.png' },
   // Pantry
-  { id: '6', name: 'All-Purpose Flour', category: 'pantry', quantity: 1, unit: 'bags', expirationDate: new Date(new Date().setDate(new Date().getDate() + 365)), isExpiring: false, isExpired: false, imageUrl: 'https://placehold.co/40x40.png' },
-  { id: '7', name: 'Olive Oil', category: 'pantry', quantity: 1, unit: 'liters', expirationDate: new Date(new Date().setDate(new Date().getDate() + 730)), isExpiring: false, isExpired: false, imageUrl: 'https://placehold.co/40x40.png' },
+  { id: '6', name: 'All-Purpose Flour', category: 'pantry', quantity: 1, unit: 'bags', expirationDate: new Date(new Date().setDate(new Date().getDate() + 365)), isExpiring: false, isExpired: false, imageUrl: 'https://placehold.co/100x100.png' },
+  { id: '7', name: 'Olive Oil', category: 'pantry', quantity: 1, unit: 'liters', expirationDate: new Date(new Date().setDate(new Date().getDate() + 730)), isExpiring: false, isExpired: false, imageUrl: 'https://placehold.co/100x100.png' },
 ];
 
 const categoryConfig = {
