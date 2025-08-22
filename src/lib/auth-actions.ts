@@ -2,6 +2,8 @@
 'use server';
 
 import { z } from 'zod';
+import { auth } from '@/lib/firebase';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 
 const authSchema = z.object({
   email: z.string().email(),
@@ -10,32 +12,29 @@ const authSchema = z.object({
 
 export async function signUpWithEmailAndPassword(values: z.infer<typeof authSchema>) {
   try {
-    // This is a placeholder. In a real app, you would use Firebase Admin SDK
-    // or call a dedicated authentication service from here.
     const validatedValues = authSchema.parse(values);
-    console.log("Signing up with:", validatedValues.email);
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      validatedValues.email,
+      validatedValues.password
+    );
     
-    // Simulate successful user creation
-    const userId = `user_${Math.random().toString(36).substring(2, 15)}`;
-    
-    return { success: true, userId: userId };
+    return { success: true, userId: userCredential.user.uid };
   } catch (error: any) {
-    return { success: false, error: "This is a mock error. " + error.message };
+    return { success: false, error: error.message };
   }
 }
 
 export async function signInWithEmailAndPasswordAction(values: z.infer<typeof authSchema>) {
     try {
-        // This is a placeholder. In a real app, you would use Firebase Admin SDK
-        // or call a dedicated authentication service from here.
         const validatedValues = authSchema.parse(values);
-        console.log("Signing in with:", validatedValues.email);
-
-        // Simulate successful sign-in
-        const userId = `user_${Math.random().toString(36).substring(2, 15)}`;
-
-        return { success: true, userId: userId };
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          validatedValues.email,
+          validatedValues.password
+        );
+        return { success: true, userId: userCredential.user.uid };
     } catch (error: any) {
-        return { success: false, error: "This is a mock error. " + error.message };
+        return { success: false, error: error.message };
     }
 }
