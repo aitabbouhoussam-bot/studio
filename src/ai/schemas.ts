@@ -47,9 +47,22 @@ export const GenerateMealPlanOutputSchema = z.object({
 export type GenerateMealPlanOutput = z.infer<typeof GenerateMealPlanOutputSchema>;
 
 
+export const UserPreferencesSchema = z.object({
+    dietaryRestrictions: z.array(z.string()).describe("e.g., ['vegetarian', 'gluten-free']"),
+    allergies: z.array(z.string()).describe("e.g., ['peanuts', 'dairy']"),
+    dailyCalorieGoal: z.number().positive().describe("Target daily calorie intake."),
+    budgetLevel: z.number().min(1).max(5).describe("Budget level from 1 (low) to 5 (premium)."),
+    maxCookingTimeMins: z.number().positive().describe("Maximum cooking time in minutes per meal."),
+    dislikedIngredients: z.array(z.string()).optional().describe("e.g., ['cilantro', 'mushrooms']"),
+    preferredCuisines: z.array(z.string()).optional().describe("e.g., ['Italian', 'Mexican']"),
+});
+export type UserPreferences = z.infer<typeof UserPreferencesSchema>;
+
+
 export const RecipeInputSchema = z.object({
-    preferences: z.any().describe("The user's meal plan preferences object."),
+    preferences: UserPreferencesSchema.describe("The user's meal plan preferences object."),
     servings: z.number().positive().describe("The number of servings for the recipe."),
     day: z.enum(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']),
     mealType: z.enum(['breakfast', 'lunch', 'dinner']),
 });
+

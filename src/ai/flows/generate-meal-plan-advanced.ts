@@ -11,7 +11,6 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import {
-  UserPreferences,
   verifyGenerationQuota,
   incrementUsageQuota,
 } from '@/lib/services/user-profile-service';
@@ -21,13 +20,13 @@ import {
   saveMealPlanToFirestore,
   generateCacheKey,
 } from '@/lib/services/meal-plan-service';
-import { GenerateMealPlanOutput, GenerateMealPlanOutputSchema } from '../schemas';
+import { GenerateMealPlanOutput, GenerateMealPlanOutputSchema, UserPreferencesSchema, UserPreferences } from '../schemas';
 
 
 // Define the input schema for the main exported function
 const GenerateMealPlanAdvancedInputSchema = z.object({
   userId: z.string().describe("The ID of the user requesting the meal plan."),
-  preferences: z.any().describe("The user's meal plan preferences object."), // Using any() to avoid circular deps with user-profile-service
+  preferences: UserPreferencesSchema.describe("The user's meal plan preferences object."),
   servings: z.number().positive().describe("The number of servings for each recipe."),
   owner: z.object({
     type: z.enum(['user', 'family']),
@@ -123,6 +122,10 @@ NUTRITION ACCURACY: Ensure all calorie and macronutrient calculations are accura
 Generate the complete meal plan following the provided JSON output schema exactly.`;
 }
 
+const FlowInputSchema = z.object({
+    preferences: UserPreferencesSchema,
+    servings: z.number(),
+});
 
 /**
  * This is the internal Genkit flow that directly interacts with the AI model.
@@ -131,10 +134,7 @@ Generate the complete meal plan following the provided JSON output schema exactl
 const generateMealPlanFlow = ai.defineFlow(
   {
     name: 'advancedMealPlanGeneratorFlow',
-    inputSchema: z.object({
-        preferences: z.any(),
-        servings: z.number(),
-    }),
+    inputSchema: FlowInputSchema,
     outputSchema: GenerateMealPlanOutputSchema,
   },
   async ({ preferences, servings }) => {

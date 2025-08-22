@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A flow to generate a single recipe for a specific meal slot.
@@ -5,8 +6,8 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { RecipeSchema, RecipeInputSchema } from '../schemas';
-import type { UserPreferences } from '@/lib/services/user-profile-service';
+import { RecipeSchema, RecipeInputSchema, UserPreferences } from '../schemas';
+
 
 export type GenerateSingleRecipeInput = z.infer<typeof RecipeInputSchema>;
 export type GenerateSingleRecipeOutput = z.infer<typeof RecipeSchema>;

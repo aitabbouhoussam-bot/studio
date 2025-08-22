@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -10,19 +11,13 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { GenerateMealPlanOutput, GenerateMealPlanOutputSchema } from '../schemas';
+import { GenerateMealPlanOutput, GenerateMealPlanOutputSchema, UserPreferencesSchema, UserPreferences } from '../schemas';
 
 const GenerateMealPlanInputSchema = z.object({
-  dietaryPreferences: z
-    .string()
-    .describe(
-      'Dietary preferences (e.g., vegetarian, vegan, gluten-free, keto).' + 'Separate multiple preferences with commas.'
-    ),
-  allergies: z
-    .string()
-    .describe('Allergies to consider when generating the meal plan (e.g., peanuts, dairy, soy). Separate multiple allergies with commas.'),
-  calorieIntake: z.number().describe('Desired daily calorie intake.'),
+  preferences: UserPreferencesSchema,
+  servings: z.number().positive(),
 });
+
 export type GenerateMealPlanInput = z.infer<typeof GenerateMealPlanInputSchema>;
 
 export type { GenerateMealPlanOutput };
@@ -38,9 +33,14 @@ const prompt = ai.definePrompt({
   prompt: `You are a professional nutritionist and chef creating a personalized 7-day meal plan.
 
 USER REQUIREMENTS:
-- Dietary restrictions: {{{dietaryPreferences}}}
-- Allergies: {{{allergies}}}
-- Daily calorie target: {{{calorieIntake}}} calories
+- Dietary restrictions: {{#each preferences.dietaryRestrictions}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
+- Allergies: {{#each preferences.allergies}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
+- Daily calorie target: {{{preferences.dailyCalorieGoal}}} calories
+- Budget level: {{{preferences.budgetLevel}}}/5
+- Max cooking time: {{{preferences.maxCookingTimeMins}}} minutes
+- Disliked Ingredients: {{#each preferences.dislikedIngredients}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
+- Preferred Cuisines: {{#each preferences.preferredCuisines}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
+- Servings: {{{servings}}}
 
 CRITICAL REQUIREMENTS:
 1. Generate exactly 7 days of meals (Monday-Sunday)
@@ -51,7 +51,7 @@ CRITICAL REQUIREMENTS:
 6. Ensure variety in cuisines and cooking methods
 7. All ingredients must specify exact quantities, units, and a valid category
 8. Instructions must be clear, step-by-step, and easy to follow
-9. The 'difficulty' field must be 'easy', 'medium', 'hard'
+9. The 'difficulty' field must be 'easy', 'medium', or 'hard'
 
 NUTRITION ACCURACY: Ensure all calorie and macronutrient calculations are accurate. This information affects user health decisions.
 
