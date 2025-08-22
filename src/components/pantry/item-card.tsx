@@ -63,8 +63,9 @@ export function ItemCard({ item }: ItemCardProps) {
                 <Image 
                     src={item.imageUrl || "https://placehold.co/100x100.png"}
                     alt={item.name}
-                    layout="fill"
-                    objectFit="contain"
+                    width={100}
+                    height={100}
+                    className="object-contain"
                     data-ai-hint="food item"
                 />
              </div>

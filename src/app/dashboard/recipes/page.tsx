@@ -92,9 +92,8 @@ export default function RecipesPage() {
                     <Image
                         src={recipe.imageUrl || "https://placehold.co/600x400.png"}
                         alt={recipe.title}
-                        layout="fill"
-                        objectFit="cover"
-                        className="rounded-t-lg"
+                        fill
+                        className="object-cover rounded-t-lg"
                         data-ai-hint="recipe food"
                     />
                 </div>

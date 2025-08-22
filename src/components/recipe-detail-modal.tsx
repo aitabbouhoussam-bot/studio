@@ -38,8 +38,8 @@ export function RecipeDetailModal({ recipe, isOpen, onClose }: RecipeDetailModal
             <div className="relative h-64 w-full rounded-md overflow-hidden border">
                  <Image
                     src={recipe.imageUrl || "https://placehold.co/600x400.png"}
-                    layout="fill"
-                    objectFit="cover"
+                    fill
+                    className="object-cover"
                     alt={recipe.title}
                     data-ai-hint="recipe food"
                 />

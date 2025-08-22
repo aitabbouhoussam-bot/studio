@@ -8,12 +8,14 @@
  * implementation and does not yet interact with a real database.
  */
 
-import type { GenerateMealPlanOutput } from '@/ai/flows/generate-meal-plan';
-import type { UserPreferences } from './user-profile-service';
+import type { GenerateMealPlanOutput } from '@/ai/schemas';
+import type { UserPreferences } from '@/ai/schemas';
 import { createHash } from 'crypto';
 
 
 // A simple in-memory cache for demonstration purposes.
+// In a production app, this would be a distributed cache like Redis or Memcached,
+// or a Firestore collection with TTL policies.
 const planCache = new Map<string, GenerateMealPlanOutput>();
 
 /**
@@ -28,6 +30,7 @@ export async function generateCacheKey(
   weekStart: string,
   servings: number
 ): Promise<string> {
+  // Sorting keys ensures that the string is consistent regardless of object key order
   const prefString = JSON.stringify(preferences, Object.keys(preferences).sort());
   const hash = createHash('sha256');
   hash.update(prefString + weekStart + servings);
