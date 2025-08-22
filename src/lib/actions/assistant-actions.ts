@@ -9,10 +9,9 @@ import {
 import { z } from 'zod';
 
 export async function getAssistantResponseAction(input: AssistantRequest) {
-  'use server';
   try {
     const validatedInput = AssistantRequestSchema.parse(input);
-    const response = await getAssistantResponse(validatedInput);
+    const response = await getAssistantResponse(validatedInput.history);
     return { success: true, data: response };
   } catch (error) {
     console.error('[Assistant Action Error]', error);

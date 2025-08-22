@@ -7,16 +7,16 @@
 
 import { ai } from '@/ai/genkit';
 import {
-  AssistantRequest,
-  AssistantRequestSchema,
+  ChatHistory,
+  ChatHistorySchema,
 } from '../schemas/assistant-schemas';
 import { z } from 'zod';
 
 // The main exported function for the AI Chef Assistant
 export async function getAssistantResponse(
-  input: AssistantRequest
+  history: ChatHistory
 ): Promise<string> {
-  return chefAssistantFlow(input);
+  return chefAssistantFlow(history);
 }
 
 // The full system prompt defining Chef AI's persona and capabilities.
@@ -88,10 +88,10 @@ If you don't know something:
 const chefAssistantFlow = ai.defineFlow(
   {
     name: 'chefAssistantFlow',
-    inputSchema: AssistantRequestSchema,
+    inputSchema: ChatHistorySchema,
     outputSchema: z.string(),
   },
-  async ({ history }) => {
+  async (history) => {
     const response = await ai.generate({
       model: 'googleai/gemini-1.5-flash',
       system: systemPrompt,

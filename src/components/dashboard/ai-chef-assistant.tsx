@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useState, useRef, useEffect, FormEvent } from 'react';
-import type { ChatHistory } from '@/ai/schemas/assistant-schemas';
+import type { Message } from '@/ai/schemas/assistant-schemas';
 import { getAssistantResponseAction } from '@/lib/actions/assistant-actions';
 import { Icons } from '../icons';
 import ReactMarkdown from 'react-markdown';
@@ -26,19 +26,15 @@ interface AiChefAssistantProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const initialMessages: ChatHistory = [
+const initialMessages: Message[] = [
   {
     role: 'model',
-    parts: [
-      {
-        text: "Bonjour! I am Chef AI, your personal culinary guide. 🍳 What delicious creation can I help you with today? Feel free to ask me for recipes, cooking advice, or ingredient substitutions!",
-      },
-    ],
+    content: "Bonjour! I am Chef AI, your personal culinary guide. 🍳 What delicious creation can I help you with today? Feel free to ask me for recipes, cooking advice, or ingredient substitutions!",
   },
 ];
 
 export function AiChefAssistant({ isOpen, onOpenChange }: AiChefAssistantProps) {
-  const [messages, setMessages] = useState<ChatHistory>(initialMessages);
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -53,9 +49,10 @@ export function AiChefAssistant({ isOpen, onOpenChange }: AiChefAssistantProps) 
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    const newMessages: ChatHistory = [
+    const userMessageContent = input.trim();
+    const newMessages: Message[] = [
       ...messages,
-      { role: 'user', parts: [{ text: input }] },
+      { role: 'user', content: userMessageContent },
     ];
     setMessages(newMessages);
     setInput('');
@@ -67,18 +64,14 @@ export function AiChefAssistant({ isOpen, onOpenChange }: AiChefAssistantProps) 
       if (result.success && result.data) {
         setMessages((prev) => [
           ...prev,
-          { role: 'model', parts: [{ text: result.data as string }] },
+          { role: 'model', content: result.data },
         ]);
       } else {
         setMessages((prev) => [
           ...prev,
           {
             role: 'model',
-            parts: [
-              {
-                text: `I'm sorry, something went wrong. Please try again. Error: ${result.error}`,
-              },
-            ],
+            content: `I'm sorry, something went wrong. Please try again. Error: ${result.error || 'Unknown error'}`,
           },
         ]);
       }
@@ -87,11 +80,7 @@ export function AiChefAssistant({ isOpen, onOpenChange }: AiChefAssistantProps) 
         ...prev,
         {
           role: 'model',
-          parts: [
-            {
-              text: `An unexpected error occurred. Please try again later.`,
-            },
-          ],
+          content: `An unexpected error occurred. Please try again later.`,
         },
       ]);
     } finally {
@@ -139,7 +128,7 @@ export function AiChefAssistant({ isOpen, onOpenChange }: AiChefAssistantProps) 
                       : 'bg-muted'
                   )}
                 >
-                  <ReactMarkdown>{message.parts[0].text}</ReactMarkdown>
+                  <ReactMarkdown>{message.content}</ReactMarkdown>
                 </div>
               </div>
             ))}

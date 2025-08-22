@@ -4,17 +4,16 @@
  */
 import { z } from 'zod';
 
-export const ModelPartSchema = z.object({
-  text: z.string(),
-});
-
 export const MessageSchema = z.object({
   role: z.enum(['user', 'model']),
-  parts: z.array(ModelPartSchema),
+  content: z.string(),
 });
+export type Message = z.infer<typeof MessageSchema>;
+
 
 export const ChatHistorySchema = z.array(MessageSchema);
 export type ChatHistory = z.infer<typeof ChatHistorySchema>;
+
 
 export const AssistantRequestSchema = z.object({
   history: ChatHistorySchema,
