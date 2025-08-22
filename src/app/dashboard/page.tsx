@@ -33,7 +33,6 @@ export default function DashboardPage() {
   const { mealPlan, setMealPlan, isLoading, setIsLoading } = useMealPlanStore();
   const { toast } = useToast();
   const [isAddRecipeModalOpen, setIsAddRecipeModalOpen] = useState(false);
-  const [isGenerateRecipeModalOpen, setIsGenerateRecipeModalOpen] = useState(false);
   const { userProfile } = useAuth();
 
 
@@ -74,8 +73,7 @@ export default function DashboardPage() {
   return (
     <>
       <AddRecipeModal isOpen={isAddRecipeModalOpen} onClose={() => setIsAddRecipeModalOpen(false)} />
-      <GenerateRecipeModal isOpen={isGenerateRecipeModalOpen} onClose={() => setIsGenerateRecipeModalOpen(false)} />
-
+      
       <div className="space-y-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -92,10 +90,6 @@ export default function DashboardPage() {
                <Button variant="outline" onClick={() => setIsAddRecipeModalOpen(true)}>
                   <PlusCircle className="mr-2 h-4 w-4"/>
                   Add Manually
-              </Button>
-              <Button onClick={() => setIsGenerateRecipeModalOpen(true)}>
-                  <Sparkles className="mr-2 h-4 w-4"/>
-                  Generate with AI
               </Button>
           </div>
         </div>
