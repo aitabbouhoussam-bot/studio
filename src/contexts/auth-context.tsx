@@ -21,6 +21,7 @@ import {
 import { doc, setDoc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { toast } from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 interface AuthContextType {
   user: User | null;
@@ -36,12 +37,13 @@ interface AuthContextType {
   updateUserProfile: (data: Partial<UserProfile>) => Promise<void>;
 }
 
-interface UserProfile {
+export interface UserProfile {
   uid: string;
   email: string;
   displayName: string;
   photoURL?: string;
   isGuest: boolean;
+  onboardingCompleted: boolean;
   subscription: {
     tier: 'free' | 'premium' | 'family';
     status: 'active' | 'cancelled' | 'expired';
@@ -70,12 +72,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setLoading(true);
       if (user) {
         setUser(user);
-        await loadUserProfile(user.uid);
+        await loadUserProfile(user);
       } else {
         setUser(null);
         setUserProfile(null);
@@ -86,19 +90,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return unsubscribe;
   }, []);
 
-  const loadUserProfile = async (uid: string) => {
+  const loadUserProfile = async (user: User) => {
     try {
-      const userDoc = await getDoc(doc(db, 'users', uid));
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
       if (userDoc.exists()) {
-        setUserProfile(userDoc.data() as UserProfile);
+        const profile = userDoc.data() as UserProfile;
+        setUserProfile(profile);
         
-        // Update last active timestamp
-        await updateDoc(doc(db, 'users', uid), {
-          lastActive: serverTimestamp()
-        });
+        await updateDoc(userDocRef, { lastActive: serverTimestamp() });
+
+        if (!profile.onboardingCompleted) {
+          router.push('/onboarding');
+        }
+
+      } else {
+        // This case can happen if a user authenticates via a provider (like Google)
+        // for the first time.
+        await createUserProfile(user);
+        router.push('/onboarding');
       }
     } catch (error) {
       console.error('Error loading user profile:', error);
+      toast.error('Could not load your profile.');
     }
   };
 
@@ -106,9 +120,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const userProfileData: UserProfile = {
       uid: user.uid,
       email: user.email!,
-      displayName: user.displayName || additionalData.displayName || 'User',
+      displayName: user.displayName || additionalData.displayName || 'New User',
       photoURL: user.photoURL || '',
       isGuest: user.isAnonymous,
+      onboardingCompleted: false, // Always false on creation
       subscription: {
         tier: 'free',
         status: 'active'
@@ -139,9 +154,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
       
       await createUserProfile(user, userData);
-      await sendEmailVerification(user);
+      // Don't send verification here, let Firebase Rules handle it.
       
-      toast.success('Account created successfully! Please verify your email.');
+      toast.success('Account created! Let\'s get you set up.');
+      // The useEffect will handle the redirect to /onboarding
     } catch (error: any) {
       toast.error(error.message);
       throw error;
@@ -153,9 +169,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
-      await signInWithEmailAndPassword(auth, email, password);
+      const {userCredential} = await signInWithEmailAndPassword(auth, email, password);
       toast.success('Signed in successfully!');
-    } catch (error: any) {
+      // The useEffect will handle routing based on onboarding status
+    } catch (error: any)
+    {
       toast.error(error.message);
       throw error;
     } finally {
@@ -171,13 +189,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       const { user } = await signInWithPopup(auth, provider);
       
-      // Check if user profile exists
       const userDoc = await getDoc(doc(db, 'users', user.uid));
       if (!userDoc.exists()) {
         await createUserProfile(user);
+        toast.success('Welcome! Let\'s get you set up.');
+      } else {
+        toast.success('Signed in with Google successfully!');
       }
-      
-      toast.success('Signed in with Google successfully!');
+      // The useEffect will handle routing
     } catch (error: any) {
       toast.error(error.message);
       throw error;
@@ -231,6 +250,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = async () => {
     try {
       await signOut(auth);
+      router.push('/login');
       toast.success('Signed out successfully!');
     } catch (error: any) {
       toast.error(error.message);
@@ -281,7 +301,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };

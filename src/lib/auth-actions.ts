@@ -11,7 +11,7 @@ const authSchema = z.object({
   password: z.string().min(8),
 });
 
-export async function signUpWithEmailAndPassword(values: z.infer<typeof authSchema>) {
+export async function signUpWithEmailAndPasswordAction(values: z.infer<typeof authSchema>) {
   try {
     const validatedValues = authSchema.parse(values);
     const userCredential = await createUserWithEmailAndPassword(
@@ -22,19 +22,7 @@ export async function signUpWithEmailAndPassword(values: z.infer<typeof authSche
 
     const user = userCredential.user;
 
-    // Create a user profile document in Firestore
-    await setDoc(doc(db, "users", user.uid), {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.email?.split('@')[0] || 'New User',
-        photoURL: '',
-        onboardingCompleted: false, // <-- New field
-        subscription: {
-          tier: 'free',
-          status: 'active',
-        },
-        createdAt: new Date().toISOString(),
-    });
+    // The AuthProvider's createUserProfile function will handle the rest
     
     return { success: true, userId: user.uid };
   } catch (error: any) {

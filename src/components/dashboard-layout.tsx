@@ -53,10 +53,17 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isAssistantOpen, setIsAssistantOpen] = React.useState(false);
 
   React.useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
+    if (!loading) {
+      if (!user) {
+        router.push('/login');
+      } else if (user && userProfile && !userProfile.onboardingCompleted) {
+        // Allow access to onboarding, but nothing else
+        if (pathname !== '/onboarding') {
+          router.push('/onboarding');
+        }
+      }
     }
-  }, [user, loading, router]);
+  }, [user, userProfile, loading, router, pathname]);
 
 
   const isActive = (path: string) => {
@@ -65,7 +72,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     return pathname.startsWith(path);
   };
   
-  if (loading) {
+  if (loading || !userProfile) {
      return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -73,9 +80,14 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // If user is not logged in, AuthContext will redirect, but this is a fallback.
   if (!user) {
-      // This shows the login modal if the user is not authenticated.
-      return <AuthModal isOpen={true} onClose={() => router.push('/')} />;
+      return null;
+  }
+  
+  // Render onboarding page without the full dashboard layout
+  if (!userProfile.onboardingCompleted) {
+    return <>{children}</>;
   }
 
 

@@ -26,8 +26,9 @@ import {
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { signInWithEmailAndPasswordAction, signUpWithEmailAndPassword } from "@/lib/auth-actions";
+import { signInWithEmailAndPasswordAction, signUpWithEmailAndPasswordAction } from "@/lib/auth-actions";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/auth-context";
 
 interface AuthFormProps {
   mode: "login" | "signup";
@@ -46,6 +47,7 @@ export function AuthForm({ mode, onSwitchMode, onSuccess }: AuthFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
+  const { signIn, signUp } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -58,41 +60,21 @@ export function AuthForm({ mode, onSwitchMode, onSuccess }: AuthFormProps) {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     
-    if (mode === 'signup') {
-      const result = await signUpWithEmailAndPassword(values);
-       if (result.success) {
-        toast({
-          title: "Account Created!",
-          description: "Welcome to Feastly! Let's get you set up.",
-        });
-        if(onSuccess) onSuccess();
-        router.push("/onboarding");
+    try {
+      if (mode === 'signup') {
+        await signUp(values.email, values.password, {});
+        if (onSuccess) onSuccess();
+        // The AuthProvider will handle the redirect to /onboarding
       } else {
-        toast({
-          variant: "destructive",
-          title: "Authentication Failed",
-          description: result.error || "An unknown error occurred.",
-        });
+        await signIn(values.email, values.password);
+        if (onSuccess) onSuccess();
+        router.push("/dashboard");
       }
-    } else {
-        const result = await signInWithEmailAndPasswordAction(values);
-        if (result.success) {
-            toast({
-                title: "Signed In!",
-                description: "Welcome back!",
-            });
-            if(onSuccess) onSuccess();
-            router.push("/dashboard");
-        } else {
-            toast({
-                variant: "destructive",
-                title: "Authentication Failed",
-                description: result.error || "An unknown error occurred.",
-            });
-        }
+    } catch(error) {
+      // The auth context will show a toast with the error.
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   const isLogin = mode === "login";
@@ -184,4 +166,3 @@ export function AuthForm({ mode, onSwitchMode, onSuccess }: AuthFormProps) {
       </Card>
   );
 }
-
