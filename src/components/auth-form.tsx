@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -55,24 +56,40 @@ export function AuthForm({ mode }: AuthFormProps) {
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     
-    const action = mode === 'signup' ? signUpWithEmailAndPassword : signInWithEmailAndPasswordAction;
-    const result = await action(values);
+    if (mode === 'signup') {
+      const result = await signUpWithEmailAndPassword(values);
+       if (result.success) {
+        toast({
+          title: "Account Created!",
+          description: "Welcome to Feastly! Let's get you set up.",
+        });
+        // Redirect to onboarding for new users
+        router.push("/onboarding");
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Authentication Failed",
+          description: result.error || "An unknown error occurred.",
+        });
+      }
+    } else {
+        const result = await signInWithEmailAndPasswordAction(values);
+        if (result.success) {
+            toast({
+                title: "Signed In!",
+                description: "Welcome back!",
+            });
+            router.push("/dashboard");
+        } else {
+            toast({
+                variant: "destructive",
+                title: "Authentication Failed",
+                description: result.error || "An unknown error occurred.",
+            });
+        }
+    }
 
     setIsLoading(false);
-
-    if (result.success) {
-      toast({
-        title: mode === 'signup' ? "Account Created!" : "Signed In!",
-        description: mode === 'signup' ? "Welcome to Feastly." : "Welcome back!",
-      });
-      router.push("/dashboard");
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Authentication Failed",
-        description: result.error || "An unknown error occurred.",
-      });
-    }
   };
 
   const isLogin = mode === "login";

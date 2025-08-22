@@ -2,8 +2,9 @@
 'use server';
 
 import { z } from 'zod';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 
 const authSchema = z.object({
   email: z.string().email(),
@@ -18,8 +19,24 @@ export async function signUpWithEmailAndPassword(values: z.infer<typeof authSche
       validatedValues.email,
       validatedValues.password
     );
+
+    const user = userCredential.user;
+
+    // Create a user profile document in Firestore
+    await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.email?.split('@')[0] || 'New User',
+        photoURL: '',
+        onboardingCompleted: false, // <-- New field
+        subscription: {
+          tier: 'free',
+          status: 'active',
+        },
+        createdAt: new Date().toISOString(),
+    });
     
-    return { success: true, userId: userCredential.user.uid };
+    return { success: true, userId: user.uid };
   } catch (error: any) {
     return { success: false, error: error.message };
   }
