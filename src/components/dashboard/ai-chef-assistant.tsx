@@ -64,7 +64,7 @@ export function AiChefAssistant({ isOpen, onOpenChange }: AiChefAssistantProps) 
       if (result.success && result.data) {
         setMessages((prev) => [
           ...prev,
-          { role: 'model', content: result.data }, // Correctly use result.data as the content
+          { role: 'model', content: result.data },
         ]);
       } else {
         setMessages((prev) => [
