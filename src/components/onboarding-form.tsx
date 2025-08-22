@@ -75,7 +75,7 @@ export function OnboardingForm() {
         <Card className="w-full max-w-lg">
             <CardHeader>
                 <Progress value={progress} className="mb-4" />
-                <CardTitle className="font-headline text-2xl">Welcome to Feastly!</CardTitle>
+                <CardTitle className="font-headline text-2xl">Welcome to MealGenius!</CardTitle>
                 <CardDescription>Let's personalize your experience. Complete these {totalSteps} steps.</CardDescription>
             </CardHeader>
             <Form {...form}>

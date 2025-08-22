@@ -3,7 +3,8 @@
 
 import { z } from "zod";
 import { auth, db } from "./firebase";
-import { doc, updateDoc, getDoc } from "firebase/firestore";
+import { doc, updateDoc } from "firebase/firestore";
+import { revalidatePath } from "next/cache";
 
 const onboardingSchema = z.object({
   dietaryPreferences: z.array(z.string()).min(1, "Please select at least one dietary preference."),
@@ -17,12 +18,12 @@ const onboardingSchema = z.object({
 type OnboardingData = z.infer<typeof onboardingSchema>;
 
 export async function saveOnboardingDataAction(data: OnboardingData) {
-    try {
-        const user = auth.currentUser;
-        if (!user) {
-            throw new Error("You must be logged in to save preferences.");
-        }
+    const user = auth.currentUser;
+    if (!user) {
+        return { success: false, error: "You must be logged in to save preferences." };
+    }
 
+    try {
         const validatedData = onboardingSchema.parse(data);
 
         const userDocRef = doc(db, "users", user.uid);
@@ -33,6 +34,9 @@ export async function saveOnboardingDataAction(data: OnboardingData) {
             'preferences.familySize': validatedData.familySize.adults + validatedData.familySize.kids,
             onboardingCompleted: true,
         });
+
+        // Revalidate the dashboard path to ensure the layout re-renders with the new onboarding status
+        revalidatePath('/dashboard');
 
         return { success: true };
 

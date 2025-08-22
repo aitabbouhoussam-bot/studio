@@ -39,8 +39,8 @@ interface AuthContextType {
 
 export interface UserProfile {
   uid: string;
-  email: string;
-  displayName: string;
+  email: string | null;
+  displayName: string | null;
   photoURL?: string;
   isGuest: boolean;
   onboardingCompleted: boolean;
@@ -50,9 +50,9 @@ export interface UserProfile {
   };
   preferences: {
     dietaryRestrictions: string[];
-    cuisinePreferences: string[];
-    cookingSkillLevel: number;
+    allergies: string[];
     familySize: number;
+    dailyCalorieGoal?: number;
   };
   createdAt: any;
   lastActive: any;
@@ -100,15 +100,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         
         await updateDoc(userDocRef, { lastActive: serverTimestamp() });
 
-        if (!profile.onboardingCompleted) {
-          router.push('/onboarding');
-        }
-
       } else {
         // This case can happen if a user authenticates via a provider (like Google)
-        // for the first time.
+        // for the first time or is a new signup.
         await createUserProfile(user);
-        router.push('/onboarding');
       }
     } catch (error) {
       console.error('Error loading user profile:', error);
@@ -119,7 +114,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const createUserProfile = async (user: User, additionalData: any = {}) => {
     const userProfileData: UserProfile = {
       uid: user.uid,
-      email: user.email!,
+      email: user.email,
       displayName: user.displayName || additionalData.displayName || 'New User',
       photoURL: user.photoURL || '',
       isGuest: user.isAnonymous,
@@ -130,14 +125,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       },
       preferences: {
         dietaryRestrictions: [],
-        cuisinePreferences: [],
-        cookingSkillLevel: 1,
+        allergies: [],
         familySize: 1,
-        ...additionalData.preferences
       },
       createdAt: serverTimestamp(),
       lastActive: serverTimestamp(),
-      ...additionalData
     };
 
     await setDoc(doc(db, 'users', user.uid), userProfileData);
@@ -153,11 +145,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         await updateProfile(user, { displayName: userData.displayName });
       }
       
-      await createUserProfile(user, userData);
-      // Don't send verification here, let Firebase Rules handle it.
+      // The user profile will be created by the onAuthStateChanged listener
+      // which calls loadUserProfile -> createUserProfile.
       
       toast.success('Account created! Let\'s get you set up.');
-      // The useEffect will handle the redirect to /onboarding
     } catch (error: any) {
       toast.error(error.message);
       throw error;
@@ -169,9 +160,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
-      const {userCredential} = await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, email, password);
       toast.success('Signed in successfully!');
-      // The useEffect will handle routing based on onboarding status
+      // The onAuthStateChanged listener will handle routing
     } catch (error: any)
     {
       toast.error(error.message);
@@ -187,16 +178,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
       
-      const { user } = await signInWithPopup(auth, provider);
+      await signInWithPopup(auth, provider);
       
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
-      if (!userDoc.exists()) {
-        await createUserProfile(user);
-        toast.success('Welcome! Let\'s get you set up.');
-      } else {
-        toast.success('Signed in with Google successfully!');
-      }
-      // The useEffect will handle routing
+      // onAuthStateChanged will handle profile creation/loading and routing
+      toast.success('Signed in with Google successfully!');
     } catch (error: any) {
       toast.error(error.message);
       throw error;
@@ -208,12 +193,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const signInAsGuest = async () => {
     try {
       setLoading(true);
-      const { user } = await signInAnonymously(auth);
-      await createUserProfile(user, { 
-        displayName: 'Guest User',
-        isGuest: true 
-      });
+      await signInAnonymously(auth);
       toast.success('Welcome, Guest User!');
+      // onAuthStateChanged will handle profile creation and routing
     } catch (error: any) {
       toast.error(error.message);
       throw error;
