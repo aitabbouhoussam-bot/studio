@@ -1,13 +1,12 @@
 
 "use client";
 
-import { useMealPlan } from "@/contexts/meal-plan-context";
+import { useMealPlanStore } from "@/stores/meal-plan-store";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Checkbox } from "./ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { ListChecks, ShoppingCart } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
-import type { GenerateMealPlanOutput } from "@/ai/schemas";
 import { Progress } from "./ui/progress";
 
 interface AggregatedIngredient {
@@ -23,7 +22,7 @@ interface CategorizedList {
 }
 
 export function ShoppingListView() {
-  const { mealPlan } = useMealPlan();
+  const { mealPlan } = useMealPlanStore();
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
 
   useEffect(() => {

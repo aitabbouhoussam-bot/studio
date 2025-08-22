@@ -32,7 +32,7 @@ import type { GeneratedRecipe } from "@/ai/flows/generate-recipe-flow";
 import { Badge } from "./ui/badge";
 import { ScrollArea } from "./ui/scroll-area";
 import { Sparkles, Save, Redo } from "lucide-react";
-import { useMealPlan } from "@/contexts/meal-plan-context";
+import { useMealPlanStore } from "@/stores/meal-plan-store";
 import type { Recipe } from "@/ai/schemas";
 import { Skeleton } from "./ui/skeleton";
 
@@ -66,7 +66,7 @@ const LoadingSkeleton = () => (
 
 export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProps) {
   const { toast } = useToast();
-  const { addRecipe } = useMealPlan();
+  const { addRecipe } = useMealPlanStore();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [generatedRecipe, setGeneratedRecipe] = useState<GeneratedRecipe | null>(null);

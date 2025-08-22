@@ -2,14 +2,11 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMealPlanStore } from "@/stores/meal-plan-store";
 import { Utensils, Wheat, ShoppingCart, Activity } from "lucide-react";
-import type { GenerateMealPlanOutput } from "@/ai/schemas";
 
-interface StatCardsProps {
-    mealPlan: GenerateMealPlanOutput | null;
-}
-
-export function StatCards({ mealPlan }: StatCardsProps) {
+export function StatCards() {
+    const mealPlan = useMealPlanStore((state) => state.mealPlan);
 
     const calculateStats = () => {
         if (!mealPlan || !mealPlan.recipes) {
@@ -54,7 +51,7 @@ export function StatCards({ mealPlan }: StatCardsProps) {
             description: "To buy this week"
         },
         {
-            title: "WHAT IS THE ROLE OF THIS",
+            title: "Plan Status",
             value: stats.planStatus,
             icon: Activity,
             description: "Current state"

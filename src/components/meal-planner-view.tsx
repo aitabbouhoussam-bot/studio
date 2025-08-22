@@ -1,25 +1,39 @@
 
 "use client";
 
-import { useMealPlan } from "@/contexts/meal-plan-context";
+import { useMealPlanStore } from "@/stores/meal-plan-store";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
-import { CalendarDays, PlusCircle, Utensils } from "lucide-react";
+import { CalendarDays, PlusCircle } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
 import type { Recipe } from "@/ai/schemas";
 import { RecipeDetailModal } from "./recipe-detail-modal";
+import { Skeleton } from "./ui/skeleton";
 
 
 const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-export function MealPlannerView() {
-  const { mealPlan, isLoading } = useMealPlan();
-  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+const PlannerSkeleton = () => (
+    <div className="grid grid-cols-1 lg:grid-cols-7 gap-4 items-start">
+        {dayOrder.map(day => (
+            <Card key={day} className="h-full">
+                <CardHeader className="p-4">
+                    <CardTitle className="font-headline text-lg text-center">{day}</CardTitle>
+                </CardHeader>
+                <CardContent className="p-2 space-y-2">
+                    <Skeleton className="h-16 w-full" />
+                    <Skeleton className="h-16 w-full" />
+                    <Skeleton className="h-16 w-full" />
+                </CardContent>
+            </Card>
+        ))}
+    </div>
+)
 
-  if (isLoading) {
-    return <div>Loading...</div>; // Replace with a proper skeleton loader
-  }
+export function MealPlannerView() {
+  const { mealPlan, isLoading } = useMealPlanStore();
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
   const groupedByDay = mealPlan?.recipes.reduce((acc, recipe) => {
     const day = recipe.day;
@@ -44,7 +58,9 @@ export function MealPlannerView() {
         </div>
       </div>
       
-      {!mealPlan ? (
+      {isLoading && <PlannerSkeleton /> }
+
+      {!isLoading && !mealPlan && (
          <Alert>
             <CalendarDays className="h-4 w-4" />
             <AlertTitle>No Meal Plan Generated</AlertTitle>
@@ -52,7 +68,9 @@ export function MealPlannerView() {
               Generate a meal plan from the dashboard to start planning your week.
             </AlertDescription>
           </Alert>
-      ) : (
+      )}
+
+      {!isLoading && mealPlan && (
         <div className="grid grid-cols-1 lg:grid-cols-7 gap-4 items-start">
             {dayOrder.map(day => (
                 <Card key={day} className="h-full">

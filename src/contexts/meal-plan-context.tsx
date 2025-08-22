@@ -1,8 +1,11 @@
 
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, ReactNode } from "react";
 import type { GenerateMealPlanOutput, Recipe } from "@/ai/schemas";
+
+// This context is a simple example.
+// For more complex state, consider libraries like Zustand or Redux.
 
 interface MealPlanContextType {
   mealPlan: GenerateMealPlanOutput | null;
@@ -21,7 +24,7 @@ export const MealPlanProvider = ({ children }: { children: ReactNode }) => {
   const addRecipe = (newRecipe: Recipe) => {
     setMealPlan(currentPlan => {
         const updatedRecipes = currentPlan ? [...currentPlan.recipes, newRecipe] : [newRecipe];
-        return { recipes: updatedRecipes };
+        return { ...currentPlan, recipes: updatedRecipes };
     });
   }
 

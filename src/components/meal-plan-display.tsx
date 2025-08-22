@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -8,13 +9,8 @@ import {
 } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
-import type { GenerateMealPlanOutput } from "@/ai/schemas";
 import { Badge } from "./ui/badge";
-
-interface MealPlanDisplayProps {
-  mealPlan: GenerateMealPlanOutput | null;
-  isLoading: boolean;
-}
+import { useMealPlanStore } from "@/stores/meal-plan-store";
 
 const MealPlanSkeleton = () => (
   <div className="space-y-4">
@@ -32,7 +28,9 @@ const MealPlanSkeleton = () => (
   </div>
 );
 
-export function MealPlanDisplay({ mealPlan, isLoading }: MealPlanDisplayProps) {
+export function MealPlanDisplay() {
+  const { mealPlan, isLoading } = useMealPlanStore();
+
   if (isLoading) {
     return <MealPlanSkeleton />;
   }

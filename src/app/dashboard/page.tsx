@@ -4,7 +4,7 @@
 import { MealPlanForm } from "@/components/meal-plan-form";
 import { MealPlanDisplay } from "@/components/meal-plan-display";
 import { StatCards } from "@/components/dashboard/stat-cards";
-import { useMealPlan } from "@/contexts/meal-plan-context";
+import { useMealPlanStore } from "@/stores/meal-plan-store";
 import { z } from "zod";
 import { generateMealPlanAction } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
@@ -28,7 +28,7 @@ const formSchema = z.object({
 });
 
 export default function DashboardPage() {
-  const { mealPlan, setMealPlan, isLoading, setIsLoading } = useMealPlan();
+  const { mealPlan, setMealPlan, isLoading, setIsLoading } = useMealPlanStore();
   const { toast } = useToast();
   const [isAddRecipeModalOpen, setIsAddRecipeModalOpen] = useState(false);
   const [isGenerateRecipeModalOpen, setIsGenerateRecipeModalOpen] = useState(false);
@@ -96,9 +96,9 @@ export default function DashboardPage() {
           </div>
         </div>
         
-        <StatCards mealPlan={mealPlan} />
+        <StatCards />
         <MealPlanForm onSubmit={handleGeneratePlan} isLoading={isLoading} />
-        <MealPlanDisplay mealPlan={mealPlan} isLoading={isLoading} />
+        <MealPlanDisplay />
       </div>
     </>
   );

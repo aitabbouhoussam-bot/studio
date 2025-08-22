@@ -1,12 +1,11 @@
 
 "use client";
 
-import { useMealPlan } from "@/contexts/meal-plan-context";
+import { useMealPlanStore } from "@/stores/meal-plan-store";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { BookOpen, PlusCircle, Sparkles } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { useState } from "react";
@@ -16,7 +15,7 @@ import { RecipeDetailModal } from "@/components/recipe-detail-modal";
 import type { Recipe } from "@/ai/schemas";
 
 export default function RecipesPage() {
-  const { mealPlan } = useMealPlan();
+  const { mealPlan } = useMealPlanStore();
   const [isAddRecipeModalOpen, setIsAddRecipeModalOpen] = useState(false);
   const [isGenerateRecipeModalOpen, setIsGenerateRecipeModalOpen] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
