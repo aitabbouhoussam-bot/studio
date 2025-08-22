@@ -11,9 +11,10 @@ import { useToast } from "@/hooks/use-toast";
 import type { GenerateMealPlanOutput } from "@/ai/schemas";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ListTodo, PlusCircle, ArrowRight } from "lucide-react";
+import { ListTodo, PlusCircle, ArrowRight, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { GenerateRecipeModal } from "@/components/generate-recipe-modal";
+import { AddRecipeModal } from "@/components/add-recipe-modal";
 
 const formSchema = z.object({
   dietaryPreferences: z.string(),
@@ -30,6 +31,8 @@ export default function DashboardPage() {
   const { mealPlan, setMealPlan, isLoading, setIsLoading } = useMealPlan();
   const { toast } = useToast();
   const [isAddRecipeModalOpen, setIsAddRecipeModalOpen] = useState(false);
+  const [isGenerateRecipeModalOpen, setIsGenerateRecipeModalOpen] = useState(false);
+
 
   const handleGeneratePlan = async (data: z.infer<typeof formSchema>) => {
     setIsLoading(true);
@@ -66,7 +69,8 @@ export default function DashboardPage() {
 
   return (
     <>
-      <GenerateRecipeModal isOpen={isAddRecipeModalOpen} onClose={() => setIsAddRecipeModalOpen(false)} />
+      <AddRecipeModal isOpen={isAddRecipeModalOpen} onClose={() => setIsAddRecipeModalOpen(false)} />
+      <GenerateRecipeModal isOpen={isGenerateRecipeModalOpen} onClose={() => setIsGenerateRecipeModalOpen(false)} />
 
       <div className="space-y-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -81,9 +85,13 @@ export default function DashboardPage() {
                       View Grocery List
                   </Link>
               </Button>
-              <Button onClick={() => setIsAddRecipeModalOpen(true)}>
+               <Button variant="outline" onClick={() => setIsAddRecipeModalOpen(true)}>
                   <PlusCircle className="mr-2 h-4 w-4"/>
-                  Add Recipe
+                  Add Manually
+              </Button>
+              <Button onClick={() => setIsGenerateRecipeModalOpen(true)}>
+                  <Sparkles className="mr-2 h-4 w-4"/>
+                  Generate with AI
               </Button>
           </div>
         </div>

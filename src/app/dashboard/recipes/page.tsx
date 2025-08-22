@@ -3,7 +3,7 @@
 
 import { useMealPlan } from "@/contexts/meal-plan-context";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { BookOpen, PlusCircle } from "lucide-react";
+import { BookOpen, PlusCircle, Sparkles } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
@@ -12,11 +12,19 @@ import Image from "next/image";
 import { useState } from "react";
 import { AddRecipeModal } from "@/components/add-recipe-modal";
 import { GenerateRecipeModal } from "@/components/generate-recipe-modal";
+import { RecipeDetailModal } from "@/components/recipe-detail-modal";
+import type { Recipe } from "@/ai/schemas";
 
 export default function RecipesPage() {
   const { mealPlan } = useMealPlan();
   const [isAddRecipeModalOpen, setIsAddRecipeModalOpen] = useState(false);
   const [isGenerateRecipeModalOpen, setIsGenerateRecipeModalOpen] = useState(false);
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+
+  const handleViewRecipe = (recipe: Recipe) => {
+    setSelectedRecipe(recipe);
+  };
+
 
   if (!mealPlan || !mealPlan.recipes || mealPlan.recipes.length === 0) {
     return (
@@ -29,8 +37,12 @@ export default function RecipesPage() {
                 <p className="text-muted-foreground">Browse and manage all your saved recipes.</p>
             </div>
             <div className="flex items-center gap-2">
-                <Button onClick={() => setIsGenerateRecipeModalOpen(true)}>
+                <Button variant="outline" onClick={() => setIsAddRecipeModalOpen(true)}>
                     <PlusCircle className="mr-2 h-4 w-4"/>
+                    Add Manually
+                </Button>
+                <Button onClick={() => setIsGenerateRecipeModalOpen(true)}>
+                    <Sparkles className="mr-2 h-4 w-4"/>
                     Generate with AI
                 </Button>
             </div>
@@ -53,6 +65,8 @@ export default function RecipesPage() {
     <>
     <GenerateRecipeModal isOpen={isGenerateRecipeModalOpen} onClose={() => setIsGenerateRecipeModalOpen(false)} />
     <AddRecipeModal isOpen={isAddRecipeModalOpen} onClose={() => setIsAddRecipeModalOpen(false)} />
+    {selectedRecipe && <RecipeDetailModal recipe={selectedRecipe} isOpen={!!selectedRecipe} onClose={() => setSelectedRecipe(null)} />}
+    
     <div className="space-y-8">
        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -60,8 +74,12 @@ export default function RecipesPage() {
             <p className="text-muted-foreground">Browse and manage all your saved recipes.</p>
         </div>
         <div className="flex items-center gap-2">
-             <Button onClick={() => setIsGenerateRecipeModalOpen(true)}>
+            <Button variant="outline" onClick={() => setIsAddRecipeModalOpen(true)}>
                 <PlusCircle className="mr-2 h-4 w-4"/>
+                Add Manually
+            </Button>
+            <Button onClick={() => setIsGenerateRecipeModalOpen(true)}>
+                <Sparkles className="mr-2 h-4 w-4"/>
                 Generate with AI
             </Button>
         </div>
@@ -93,7 +111,7 @@ export default function RecipesPage() {
               </div>
             </CardContent>
             <CardFooter className="p-6 pt-0">
-                <Button variant="outline" className="w-full" disabled>View Recipe</Button>
+                <Button variant="outline" className="w-full" onClick={() => handleViewRecipe(recipe)}>View Recipe</Button>
             </CardFooter>
           </Card>
         ))}
