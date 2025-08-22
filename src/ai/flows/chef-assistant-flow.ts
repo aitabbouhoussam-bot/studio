@@ -92,9 +92,8 @@ const chefAssistantFlow = ai.defineFlow(
     outputSchema: z.string(),
   },
   async ({ history }) => {
-    const model = ai.model('gemini-1.5-flash');
-
-    const response = await model.generate({
+    const response = await ai.generate({
+      model: 'googleai/gemini-1.5-flash',
       system: systemPrompt,
       history: history,
       config: {
