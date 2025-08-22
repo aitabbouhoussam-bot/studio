@@ -87,21 +87,26 @@ export async function generateMealPlan(input: GenerateMealPlanAdvancedInput): Pr
 }
 
 
-/**
- * Builds the detailed prompt for the AI model based on user preferences.
- */
-function buildMealPlanPrompt(preferences: UserPreferences, servings: number): string {
-  return `You are a professional nutritionist and chef creating a personalized 7-day meal plan.
+const FlowInputSchema = z.object({
+    preferences: UserPreferencesSchema,
+    servings: z.number(),
+});
+
+const mealPlanPrompt = ai.definePrompt({
+    name: 'generateMealPlanAdvancedPrompt',
+    input: { schema: FlowInputSchema },
+    output: { schema: GenerateMealPlanOutputSchema },
+    prompt: `You are a professional nutritionist and chef creating a personalized 7-day meal plan.
 
 USER REQUIREMENTS:
-- Dietary restrictions: ${preferences.dietaryRestrictions.join(', ') || 'None'}
-- Allergies: ${preferences.allergies.join(', ') || 'None'}
-- Daily calorie target: ${preferences.dailyCalorieGoal} calories
-- Maximum cooking time per meal: ${preferences.maxCookingTimeMins || 45} minutes
-- Budget level: ${preferences.budgetLevel || 3}/5 (1=very budget-friendly, 5=premium ingredients)
-- Servings per recipe: ${servings}
-- Disliked ingredients: ${preferences.dislikedIngredients?.join(', ') || 'None'}
-- Preferred cuisines: ${preferences.preferredCuisines?.join(', ') || 'Varied'}
+- Dietary restrictions: {{#each preferences.dietaryRestrictions}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
+- Allergies: {{#each preferences.allergies}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
+- Daily calorie target: {{{preferences.dailyCalorieGoal}}} calories
+- Maximum cooking time per meal: {{{preferences.maxCookingTimeMins}}} minutes
+- Budget level: {{{preferences.budgetLevel}}}/5 (1=very budget-friendly, 5=premium ingredients)
+- Servings per recipe: {{{servings}}}
+- Disliked ingredients: {{#if preferences.dislikedIngredients}}{{#each preferences.dislikedIngredients}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}{{else}}None{{/if}}
+- Preferred cuisines: {{#if preferences.preferredCuisines}}{{#each preferences.preferredCuisines}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}{{else}}Varied{{/if}}
 
 CRITICAL REQUIREMENTS:
 1. Generate exactly 7 days of meals (Monday-Sunday)
@@ -119,13 +124,12 @@ CRITICAL REQUIREMENTS:
 
 NUTRITION ACCURACY: Ensure all calorie and macronutrient calculations are accurate. This information affects user health decisions.
 
-Generate the complete meal plan following the provided JSON output schema exactly.`;
-}
-
-const FlowInputSchema = z.object({
-    preferences: UserPreferencesSchema,
-    servings: z.number(),
+Generate the complete meal plan following the provided JSON output schema exactly.`,
+    config: {
+        temperature: 0.7,
+    }
 });
+
 
 /**
  * This is the internal Genkit flow that directly interacts with the AI model.
@@ -137,18 +141,8 @@ const generateMealPlanFlow = ai.defineFlow(
     inputSchema: FlowInputSchema,
     outputSchema: GenerateMealPlanOutputSchema,
   },
-  async ({ preferences, servings }) => {
-    const prompt = ai.definePrompt({
-        name: 'generateMealPlanAdvancedPrompt',
-        input: { schema: z.any() },
-        output: { schema: GenerateMealPlanOutputSchema },
-        prompt: buildMealPlanPrompt(preferences, servings),
-        config: {
-            temperature: 0.7,
-        }
-    });
-
-    const { output } = await prompt(preferences);
+  async (input) => {
+    const { output } = await mealPlanPrompt(input);
     return output!;
   }
 );

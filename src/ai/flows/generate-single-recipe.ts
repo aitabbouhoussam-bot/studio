@@ -18,22 +18,25 @@ export async function generateSingleRecipe(input: GenerateSingleRecipeInput): Pr
 }
 
 
-function buildSingleRecipePrompt(preferences: UserPreferences, servings: number, day: string, mealType: string): string {
-    return `You are a professional nutritionist and chef creating a single personalized recipe for a meal plan.
+const singleRecipePrompt = ai.definePrompt({
+    name: 'generateSingleRecipePrompt',
+    input: { schema: RecipeInputSchema },
+    output: { schema: RecipeSchema },
+    prompt: `You are a professional nutritionist and chef creating a single personalized recipe for a meal plan.
 
 USER REQUIREMENTS:
-- Dietary restrictions: ${preferences.dietaryRestrictions.join(', ') || 'None'}
-- Allergies: ${preferences.allergies.join(', ') || 'None'}
-- Daily calorie target: ${preferences.dailyCalorieGoal} calories (generate a recipe appropriate for a single meal within this budget)
-- Maximum cooking time per meal: ${preferences.maxCookingTimeMins || 45} minutes
-- Budget level: ${preferences.budgetLevel || 3}/5 (1=very budget-friendly, 5=premium ingredients)
-- Servings per recipe: ${servings}
-- Disliked ingredients: ${preferences.dislikedIngredients?.join(', ') || 'None'}
-- Preferred cuisines: ${preferences.preferredCuisines?.join(', ') || 'Varied'}
+- Dietary restrictions: {{#each preferences.dietaryRestrictions}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
+- Allergies: {{#each preferences.allergies}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
+- Daily calorie target: {{{preferences.dailyCalorieGoal}}} calories (generate a recipe appropriate for a single meal within this budget)
+- Maximum cooking time per meal: {{{preferences.maxCookingTimeMins}}} minutes
+- Budget level: {{{preferences.budgetLevel}}}/5 (1=very budget-friendly, 5=premium ingredients)
+- Servings per recipe: {{{servings}}}
+- Disliked ingredients: {{#if preferences.dislikedIngredients}}{{#each preferences.dislikedIngredients}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}{{else}}None{{/if}}
+- Preferred cuisines: {{#if preferences.preferredCuisines}}{{#each preferences.preferredCuisines}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}{{else}}Varied{{/if}}
 
 TARGETED MEAL SLOT:
-- Day: ${day}
-- Meal Type: ${mealType}
+- Day: {{{day}}}
+- Meal Type: {{{mealType}}}
 
 CRITICAL REQUIREMENTS:
 1. Generate exactly ONE recipe.
@@ -50,8 +53,11 @@ CRITICAL REQUIREMENTS:
 
 NUTRITION ACCURACY: Ensure all calorie and macronutrient calculations are accurate. This information affects user health decisions.
 
-Generate the single recipe following the provided JSON output schema exactly. The 'day' and 'mealType' fields in the output must match the targeted meal slot.`;
-}
+Generate the single recipe following the provided JSON output schema exactly. The 'day' and 'mealType' fields in the output must match the targeted meal slot.`,
+    config: {
+        temperature: 0.8, // Slightly higher temp for more variety in single recipes
+    }
+});
 
 
 const generateSingleRecipeFlow = ai.defineFlow(
@@ -60,19 +66,8 @@ const generateSingleRecipeFlow = ai.defineFlow(
     inputSchema: RecipeInputSchema,
     outputSchema: RecipeSchema,
   },
-  async ({ preferences, servings, day, mealType }) => {
-    
-    const prompt = ai.definePrompt({
-        name: 'generateSingleRecipePrompt',
-        input: { schema: z.any() },
-        output: { schema: RecipeSchema },
-        prompt: buildSingleRecipePrompt(preferences, servings, day, mealType),
-        config: {
-            temperature: 0.8, // Slightly higher temp for more variety in single recipes
-        }
-    });
-
-    const { output } = await prompt({ preferences, servings, day, mealType });
+  async (input) => {
+    const { output } = await singleRecipePrompt(input);
     return output!;
   }
 );
