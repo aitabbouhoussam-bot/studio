@@ -44,7 +44,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { usePathname, useRouter } from "next/navigation";
 import { AiChefAssistant } from "./dashboard/ai-chef-assistant";
 import { useAuth } from "@/contexts/auth-context";
-import { AuthModal } from "./auth-modal";
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -53,43 +52,41 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isAssistantOpen, setIsAssistantOpen] = React.useState(false);
 
   React.useEffect(() => {
-    if (!loading) {
-      if (!user) {
-        router.push('/login');
-      } else if (user && userProfile && !userProfile.onboardingCompleted) {
-        // Allow access to onboarding, but nothing else
-        if (pathname !== '/onboarding') {
-          router.push('/onboarding');
-        }
+    if (loading) return; // Wait until loading is finished
+
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+
+    if (user && userProfile && !userProfile.onboardingCompleted) {
+      if (pathname !== '/onboarding') {
+        router.push('/onboarding');
+      }
+    } else if (user && userProfile && userProfile.onboardingCompleted) {
+      if (pathname === '/onboarding') {
+         router.push('/dashboard');
       }
     }
+
   }, [user, userProfile, loading, router, pathname]);
 
-
   const isActive = (path: string) => {
-    // Exact match for dashboard, startsWith for others
     if (path === "/dashboard") return pathname === path;
     return pathname.startsWith(path);
   };
   
-  if (loading || !userProfile) {
+  if (loading || !user || !userProfile) {
      return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
-
-  // If user is not logged in, AuthContext will redirect, but this is a fallback.
-  if (!user) {
-      return null;
-  }
   
-  // Render onboarding page without the full dashboard layout
   if (!userProfile.onboardingCompleted) {
     return <>{children}</>;
   }
-
 
   return (
     <SidebarProvider>
@@ -98,7 +95,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           <Link href="/dashboard" className="flex items-center gap-2">
             <Icons.logo className="w-8 h-8 text-primary" />
             <span className="font-bold text-lg font-headline group-data-[collapsible=icon]:hidden">
-              Feastly
+              MealGenius
             </span>
           </Link>
         </SidebarHeader>

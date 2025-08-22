@@ -16,6 +16,7 @@ import { useState } from "react";
 import { GenerateRecipeModal } from "@/components/generate-recipe-modal";
 import { AddRecipeModal } from "@/components/add-recipe-modal";
 import { Icons } from "@/components/icons";
+import { useAuth } from "@/contexts/auth-context";
 
 const formSchema = z.object({
   dietaryRestrictions: z.array(z.string()),
@@ -33,6 +34,7 @@ export default function DashboardPage() {
   const { toast } = useToast();
   const [isAddRecipeModalOpen, setIsAddRecipeModalOpen] = useState(false);
   const [isGenerateRecipeModalOpen, setIsGenerateRecipeModalOpen] = useState(false);
+  const { userProfile } = useAuth();
 
 
   const handleGeneratePlan = async (data: z.infer<typeof formSchema>) => {
@@ -77,7 +79,7 @@ export default function DashboardPage() {
       <div className="space-y-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-              <h1 className="text-2xl md:text-3xl font-bold font-headline">Welcome Back, User!</h1>
+              <h1 className="text-2xl md:text-3xl font-bold font-headline">Welcome Back, {userProfile?.displayName || 'User'}!</h1>
               <p className="text-muted-foreground">Here's what your week looks like. Let's get planning!</p>
           </div>
           <div className="flex items-center gap-2">
@@ -99,7 +101,12 @@ export default function DashboardPage() {
         </div>
         
         <StatCards />
-        <MealPlanForm onSubmit={handleGeneratePlan} isLoading={isLoading} />
+        <MealPlanForm 
+          onSubmit={handleGeneratePlan} 
+          isLoading={isLoading} 
+          // @ts-ignore
+          userProfilePreferences={userProfile?.preferences}
+        />
         <MealPlanDisplay />
       </div>
     </>

@@ -27,9 +27,8 @@ import { Checkbox } from "./ui/checkbox";
 import { Slider } from "./ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Sparkles } from "lucide-react";
-
-const dietaryOptions = ['vegetarian', 'vegan', 'keto', 'paleo', 'mediterranean', 'gluten-free'];
-const allergyOptions = ['nuts', 'dairy', 'shellfish', 'eggs', 'soy', 'wheat'];
+import { UserProfile } from "@/contexts/auth-context";
+import { useEffect } from "react";
 
 const formSchema = z.object({
   dietaryRestrictions: z.array(z.string()).default([]),
@@ -42,13 +41,13 @@ const formSchema = z.object({
   preferredCuisines: z.array(z.string()).default([]),
 });
 
-
 interface MealPlanFormProps {
   onSubmit: (data: z.infer<typeof formSchema>) => void; 
   isLoading: boolean;
+  userProfilePreferences?: UserProfile['preferences'];
 }
 
-export function MealPlanForm({ onSubmit, isLoading }: MealPlanFormProps) {
+export function MealPlanForm({ onSubmit, isLoading, userProfilePreferences }: MealPlanFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -63,12 +62,32 @@ export function MealPlanForm({ onSubmit, isLoading }: MealPlanFormProps) {
     },
   });
 
+  useEffect(() => {
+    if (userProfilePreferences) {
+      form.reset({
+        dietaryRestrictions: userProfilePreferences.dietaryRestrictions || [],
+        allergies: userProfilePreferences.allergies || [],
+        dailyCalorieGoal: userProfilePreferences.dailyCalorieGoal || 2000,
+        // Keep some fields customizable per-request
+        defaultServings: userProfilePreferences.familySize || 2,
+        budgetLevel: 3,
+        maxCookingTimeMins: 45,
+        dislikedIngredients: [],
+        preferredCuisines: [],
+      });
+    }
+  }, [userProfilePreferences, form]);
+
+  const dietaryOptions = ['vegetarian', 'vegan', 'keto', 'paleo', 'mediterranean', 'gluten-free'];
+  const allergyOptions = ['nuts', 'dairy', 'shellfish', 'eggs', 'soy', 'wheat'];
+
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="font-headline text-2xl">Create Your Meal Plan</CardTitle>
         <CardDescription>
-          Tell us your preferences and we'll generate a personalized meal plan just for you.
+          Your preferences are pre-loaded. Adjust servings if needed and generate your plan!
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -83,7 +102,7 @@ export function MealPlanForm({ onSubmit, isLoading }: MealPlanFormProps) {
                   <div className="mb-4">
                     <FormLabel className="text-base">Dietary Preferences</FormLabel>
                     <FormDescription>
-                      Select any dietary protocols you follow.
+                      These are based on your onboarding choices.
                     </FormDescription>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -101,18 +120,10 @@ export function MealPlanForm({ onSubmit, isLoading }: MealPlanFormProps) {
                             <FormControl>
                               <Checkbox
                                 checked={field.value?.includes(item)}
-                                onCheckedChange={(checked) => {
-                                  return checked
-                                    ? field.onChange([...field.value, item])
-                                    : field.onChange(
-                                        field.value?.filter(
-                                          (value) => value !== item
-                                        )
-                                      )
-                                }}
+                                disabled // Disabled as it's from profile
                               />
                             </FormControl>
-                            <FormLabel className="font-normal capitalize">
+                            <FormLabel className="font-normal capitalize text-muted-foreground">
                               {item}
                             </FormLabel>
                           </FormItem>
@@ -134,7 +145,7 @@ export function MealPlanForm({ onSubmit, isLoading }: MealPlanFormProps) {
                   <div className="mb-4">
                     <FormLabel className="text-base">Allergies & Intolerances</FormLabel>
                      <FormDescription>
-                      Select any ingredients you need to avoid completely.
+                      These are based on your onboarding choices.
                     </FormDescription>
                   </div>
                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -152,18 +163,10 @@ export function MealPlanForm({ onSubmit, isLoading }: MealPlanFormProps) {
                             <FormControl>
                               <Checkbox
                                 checked={field.value?.includes(item)}
-                                onCheckedChange={(checked) => {
-                                  return checked
-                                    ? field.onChange([...field.value, item])
-                                    : field.onChange(
-                                        field.value?.filter(
-                                          (value) => value !== item
-                                        )
-                                      )
-                                }}
+                                disabled // Disabled as it's from profile
                               />
                             </FormControl>
-                            <FormLabel className="font-normal capitalize">
+                            <FormLabel className="font-normal capitalize text-muted-foreground">
                               {item}
                             </FormLabel>
                           </FormItem>
@@ -185,7 +188,7 @@ export function MealPlanForm({ onSubmit, isLoading }: MealPlanFormProps) {
                     <FormItem>
                     <FormLabel>Daily Calorie Goal</FormLabel>
                     <FormControl>
-                        <Input type="number" placeholder="e.g., 2000" {...field} disabled={isLoading} />
+                        <Input type="number" placeholder="e.g., 2000" {...field} disabled={isLoading || !!userProfilePreferences} className="text-muted-foreground"/>
                     </FormControl>
                     <FormMessage />
                     </FormItem>

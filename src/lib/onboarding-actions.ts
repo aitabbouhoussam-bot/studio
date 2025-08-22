@@ -28,14 +28,9 @@ export async function saveOnboardingDataAction(data: OnboardingData) {
         const userDocRef = doc(db, "users", user.uid);
         
         await updateDoc(userDocRef, {
-            preferences: {
-                dietaryRestrictions: validatedData.dietaryPreferences,
-                allergies: validatedData.allergies,
-            },
-            family: {
-                adults: validatedData.familySize.adults,
-                kids: validatedData.familySize.kids,
-            },
+            'preferences.dietaryRestrictions': validatedData.dietaryPreferences,
+            'preferences.allergies': validatedData.allergies,
+            'preferences.familySize': validatedData.familySize.adults + validatedData.familySize.kids,
             onboardingCompleted: true,
         });
 
