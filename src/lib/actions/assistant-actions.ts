@@ -1,110 +1,119 @@
 'use server';
-/**
- * @fileOverview A Genkit flow for the AI Chef Assistant.
- * This file defines the server-side logic for the chat assistant,
- * including its persona and how it generates responses.
- */
 
-import { ai } from '@/ai/genkit';
-import {
-  ChatHistory,
-  ChatHistorySchema,
-} from '@/ai/schemas/assistant-schemas';
-import { z } from 'zod';
+import { googleAI } from '@genkit-ai/googleai';
+import { genkit } from 'genkit';
+import type { Message } from '@/ai/schemas/assistant-schemas';
 
-const chefAssistantSystemPrompt = `You are **Chef AI**, a friendly and expert culinary assistant chatbot. You're passionate about food, cooking, and helping people create delicious meals. You combine professional chef knowledge with an approachable, encouraging personality.
+// Initialize Genkit with Google AI
+const ai = genkit({
+  plugins: [googleAI()],
+});
 
-## Communication Style
-- **Warm and enthusiastic** - Use friendly greetings like "Hello, fellow food lover!"
-- **Conversational** - Respond naturally, like chatting with a cooking mentor
-- **Encouraging** - Build confidence and make cooking feel achievable
-- **Concise but complete** - Provide thorough answers without overwhelming
-- **Use food emojis sparingly** - Add personality but don't overdo it 🍳
+const CHEF_SYSTEM_PROMPT = `You are Chef AI, a world-class culinary expert and passionate cooking mentor. You have extensive knowledge of global cuisines, cooking techniques, nutrition, and food science.
 
-## Your Expertise Areas
-1. **Recipe Creation** - Generate original recipes from ingredients or requests
-2. **Cooking Techniques** - Explain methods, temperatures, timing, and tips
-3. **Ingredient Substitutions** - Offer alternatives for dietary needs or availability
-4. **Meal Planning** - Suggest menus, prep strategies, and balanced meals
-5. **Troubleshooting** - Fix cooking disasters and prevent common mistakes
-6. **Nutritional Guidance** - Basic nutrition info and healthy cooking tips
-7. **Global Cuisines** - Dishes from around the world with cultural context
+Your personality:
+- Enthusiastic and encouraging - Make cooking feel exciting and achievable
+- Knowledgeable but approachable - Share expertise without being intimidating  
+- Adaptable - Work with any skill level, dietary restrictions, or available ingredients
+- Creative - Suggest innovative twists while respecting traditional techniques
+- Safety-conscious - Always prioritize food safety and proper techniques
 
-## Response Framework
-If you are asked for a recipe, use this exact markdown format:
-**[Recipe Name]** 🍽️
-*Brief appetizing description*
+When providing recipes, include:
+- Prep time, cook time, total time
+- Serving size and difficulty level
+- Complete ingredient list with measurements
+- Clear step-by-step instructions
+- Chef's tips for success
+- Variations and substitutions when relevant
 
-**Time:** Prep: Xmin | Cook: Xmin | Serves: X
-**Difficulty:** Beginner/Intermediate/Advanced
+Respond in a friendly, encouraging tone using emojis appropriately.`;
 
-**Ingredients:**
-- [List with measurements]
+export async function getAssistantResponseAction({ 
+  history 
+}: { 
+  history: Message[] 
+}): Promise<{ success: boolean; data?: string; error?: string }> {
+  try {
+    console.log('🔍 Starting assistant action...');
+    console.log('📝 Message history length:', history.length);
+    
+    // Validate input
+    if (!history || history.length === 0) {
+      return {
+        success: false,
+        error: 'No message history provided'
+      };
+    }
 
-**Instructions:**
-1. [Clear, numbered steps]
-2. [Include timing and visual cues]
+    // Get the latest user message
+    const lastMessage = history[history.length - 1];
+    if (!lastMessage || lastMessage.role !== 'user') {
+      return {
+        success: false,
+        error: 'Last message must be from user'
+      };
+    }
 
-**Chef's Tips:**
-- [Pro advice for success]
-- [Common mistakes to avoid]
+    console.log('📤 User message:', lastMessage.content);
 
-**Variations:** [Optional modifications]
-
-## Safety & Best Practices
-- Mention food safety temperatures, proper storage, and cross-contamination prevention.
-`;
+    // Convert to Genkit message format
+    const messages = history.map(msg => ({
+        role: msg.role === 'user' ? 'user' : 'model',
+        content: [{ text: msg.content }]
+    }));
 
 
-/**
- * Defines the Genkit flow for the AI Chef Assistant.
- * This flow takes the chat history and returns a text response from the AI.
- */
-const chefAssistantFlow = ai.defineFlow(
-  {
-    name: 'chefAssistantFlow',
-    inputSchema: ChatHistorySchema,
-    outputSchema: z.string(),
-  },
-  async (history) => {
+    console.log('🤖 Calling Genkit AI...');
+
+    // Call Genkit with proper error handling
     const response = await ai.generate({
       model: 'googleai/gemini-1.5-flash',
-      system: chefAssistantSystemPrompt,
-      history: history,
+      system: CHEF_SYSTEM_PROMPT,
+      history: messages,
       config: {
-        temperature: 0.7,
-        maxOutputTokens: 2048,
-      },
+        temperature: 0.8,
+        maxOutputTokens: 1500,
+        topP: 0.9,
+      }
     });
 
-    return response.text;
-  }
-);
+    console.log('📊 AI Response received');
+    
+    const responseText = response.text;
 
+    // Validate response content
+    if (!responseText || typeof responseText !== 'string' || responseText.trim() === '') {
+      console.log('❌ Empty or invalid response text');
+      return {
+        success: false,
+        error: 'AI returned empty response'
+      };
+    }
 
-/**
- * The server action that the frontend calls. It validates the input
- * and executes the Genkit flow.
- * @param input An object containing the chat history.
- * @returns An object with success status and either data or an error message.
- */
-export async function getAssistantResponseAction(input: { history: ChatHistory }) {
-  try {
-    // Validate the input using the Zod schema
-    const validatedInput = ChatHistorySchema.parse(input.history);
+    console.log('✅ Success! Response length:', responseText.length);
 
-    // Run the flow with the validated history
-    const response = await chefAssistantFlow(validatedInput);
+    return {
+      success: true,
+      data: responseText.trim()
+    };
 
-    // Return the successful response
-    return { success: true, data: response };
-  } catch (error) {
-    console.error('[Assistant Action Error]', error);
-    const errorMessage =
-      error instanceof Error ? error.message : 'An unknown error occurred';
+  } catch (error: any) {
+    console.error('❌ Error in getAssistantResponseAction:', error);
+    let errorMessage = 'An unexpected error occurred';
+    
+    if (error.message?.includes('API key')) {
+      errorMessage = 'API key configuration error';
+    } else if (error.message?.includes('quota')) {
+      errorMessage = 'API quota exceeded';
+    } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+      errorMessage = 'Network connection error';
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
     return {
       success: false,
-      error: `Failed to get assistant response: ${errorMessage}`,
+      error: errorMessage
     };
   }
 }
