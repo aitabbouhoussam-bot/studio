@@ -19,30 +19,46 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 // Initialize Firebase services
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
-export const functions = getFunctions(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+const functions = getFunctions(app);
 
 // Connect to emulators in development
-if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+if (process.env.NODE_ENV === 'development') {
   // Check if emulators are not already connected to prevent errors on hot reloads
   // @ts-ignore
   if (!auth.emulatorConfig) {
-    connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
+    try {
+      connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
+    } catch (e) {
+      console.log('Auth emulator already connected or failed to connect');
+    }
   }
   // @ts-ignore
   if (!db._settings.host.includes('localhost')) {
-    connectFirestoreEmulator(db, 'localhost', 8080);
+     try {
+      connectFirestoreEmulator(db, 'localhost', 8080);
+    } catch (e) {
+      console.log('Firestore emulator already connected or failed to connect');
+    }
   }
    // @ts-ignore
   if (!storage.emulator) {
-    connectStorageEmulator(storage, 'localhost', 9199);
+     try {
+      connectStorageEmulator(storage, 'localhost', 9199);
+    } catch (e) {
+      console.log('Storage emulator already connected or failed to connect');
+    }
   }
   // @ts-ignore
   if (!functions.emulatorOrigin) {
-    connectFunctionsEmulator(functions, 'localhost', 5001);
+     try {
+      connectFunctionsEmulator(functions, 'localhost', 5001);
+    } catch (e) {
+      console.log('Functions emulator already connected or failed to connect');
+    }
   }
 }
 
-export { app };
+export { app, auth, db, storage, functions };
