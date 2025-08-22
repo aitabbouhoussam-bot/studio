@@ -54,6 +54,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     if (loading) return; // Wait until loading is finished
 
+    // Allow admin user to bypass checks
+    if (user?.uid === 'admin_user') return;
+
     if (!user) {
       router.push('/login');
       return;
@@ -84,7 +87,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     );
   }
   
-  if (!userProfile.onboardingCompleted) {
+  if (user.uid !== 'admin_user' && !userProfile.onboardingCompleted) {
     return <>{children}</>;
   }
 

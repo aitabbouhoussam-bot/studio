@@ -78,8 +78,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setLoading(true);
       if (user) {
-        setUser(user);
-        await loadUserProfile(user);
+        // If it's our mock admin user, don't try to load a profile
+        if (user.uid === 'admin_user') {
+            setUser(user);
+            setUserProfile(user.providerData[0] as UserProfile);
+        } else {
+            setUser(user);
+            await loadUserProfile(user);
+        }
       } else {
         setUser(null);
         setUserProfile(null);
@@ -120,7 +126,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       isGuest: user.isAnonymous,
       onboardingCompleted: false, // Always false on creation
       subscription: {
-        tier: 'free',
+        tier: 'premium', // Admins/new users can be premium
         status: 'active'
       },
       preferences: {
@@ -158,6 +164,39 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const signIn = async (email: string, password: string) => {
+    // Admin backdoor for development
+    if (email === 'admin@admin.com') {
+        console.log("Admin login detected, bypassing Firebase Auth.");
+        setLoading(true);
+        const adminUser = {
+            uid: 'admin_user',
+            email: 'admin@admin.com',
+            displayName: 'Administrator',
+            photoURL: '',
+            isAnonymous: false,
+            emailVerified: true,
+            providerData: [{
+                uid: 'admin_user',
+                email: 'admin@admin.com',
+                displayName: 'Administrator',
+                photoURL: '',
+                isGuest: false,
+                onboardingCompleted: true, // Admins don't need onboarding
+                subscription: { tier: 'premium', status: 'active' },
+                preferences: { dietaryRestrictions: [], allergies: [], familySize: 1, dailyCalorieGoal: 2000 },
+                createdAt: new Date(),
+                lastActive: new Date(),
+            }]
+        } as unknown as User;
+
+        setUser(adminUser);
+        setUserProfile(adminUser.providerData[0] as UserProfile);
+        toast.success('Signed in as Administrator');
+        router.push('/dashboard');
+        setLoading(false);
+        return;
+    }
+
     try {
       setLoading(true);
       await signInWithEmailAndPassword(auth, email, password);
@@ -252,6 +291,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const updateUserProfile = async (data: Partial<UserProfile>) => {
     if (!user) throw new Error('No user logged in');
+     if (user.uid === 'admin_user') {
+        toast.error("Cannot update mock admin profile.");
+        return;
+    }
 
     try {
       await updateDoc(doc(db, 'users', user.uid), {
