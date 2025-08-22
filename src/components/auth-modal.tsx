@@ -294,7 +294,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       <button
                         onClick={() => setMode('signin')}
                         className="text-primary hover:underline font-semibold"
-                      >
+                        >
                         Sign in
                       </button>
                     </p>
