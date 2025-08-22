@@ -26,38 +26,27 @@ const functions = getFunctions(app);
 
 // Connect to emulators in development
 if (process.env.NODE_ENV === 'development') {
-  // Check if emulators are not already connected to prevent errors on hot reloads
-  // @ts-ignore
-  if (!auth.emulatorConfig) {
-    try {
-      connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
-    } catch (e) {
-      console.log('Auth emulator already connected or failed to connect');
-    }
+  // Using try/catch is a more robust way to handle emulator connections
+  // as it avoids relying on private SDK properties that might change.
+  try {
+    connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
+  } catch (e) {
+    console.log('Auth emulator may already be connected.');
   }
-  // @ts-ignore
-  if (!db._settings.host.includes('localhost')) {
-     try {
-      connectFirestoreEmulator(db, 'localhost', 8080);
-    } catch (e) {
-      console.log('Firestore emulator already connected or failed to connect');
-    }
+   try {
+    connectFirestoreEmulator(db, 'localhost', 8080);
+  } catch (e) {
+    console.log('Firestore emulator may already be connected.');
   }
-   // @ts-ignore
-  if (!storage.emulator) {
-     try {
-      connectStorageEmulator(storage, 'localhost', 9199);
-    } catch (e) {
-      console.log('Storage emulator already connected or failed to connect');
-    }
+   try {
+    connectStorageEmulator(storage, 'localhost', 9199);
+  } catch (e) {
+    console.log('Storage emulator may already be connected.');
   }
-  // @ts-ignore
-  if (!functions.emulatorOrigin) {
-     try {
-      connectFunctionsEmulator(functions, 'localhost', 5001);
-    } catch (e) {
-      console.log('Functions emulator already connected or failed to connect');
-    }
+   try {
+    connectFunctionsEmulator(functions, 'localhost', 5001);
+  } catch (e) {
+    console.log('Functions emulator may already be connected.');
   }
 }
 
