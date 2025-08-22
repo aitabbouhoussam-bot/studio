@@ -31,6 +31,8 @@ import { useToast } from "@/hooks/use-toast";
 
 interface AuthFormProps {
   mode: "login" | "signup";
+  onSwitchMode?: () => void;
+  onSuccess?: () => void;
 }
 
 const formSchema = z.object({
@@ -40,7 +42,7 @@ const formSchema = z.object({
     .min(8, { message: "Password must be at least 8 characters long." }),
 });
 
-export function AuthForm({ mode }: AuthFormProps) {
+export function AuthForm({ mode, onSwitchMode, onSuccess }: AuthFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
@@ -63,7 +65,7 @@ export function AuthForm({ mode }: AuthFormProps) {
           title: "Account Created!",
           description: "Welcome to Feastly! Let's get you set up.",
         });
-        // Redirect to onboarding for new users
+        if(onSuccess) onSuccess();
         router.push("/onboarding");
       } else {
         toast({
@@ -79,6 +81,7 @@ export function AuthForm({ mode }: AuthFormProps) {
                 title: "Signed In!",
                 description: "Welcome back!",
             });
+            if(onSuccess) onSuccess();
             router.push("/dashboard");
         } else {
             toast({
@@ -95,8 +98,7 @@ export function AuthForm({ mode }: AuthFormProps) {
   const isLogin = mode === "login";
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-secondary/50 p-4">
-      <Card className="w-full max-w-sm">
+      <Card className="w-full max-w-sm border-none shadow-none">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-headline">
             {isLogin ? "Welcome Back!" : "Create an Account"}
@@ -171,15 +173,15 @@ export function AuthForm({ mode }: AuthFormProps) {
           </Button>
           <p className="px-8 text-center text-sm text-muted-foreground">
             {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
-            <Link
-              href={isLogin ? "/signup" : "/login"}
-              className="underline underline-offset-4 hover:text-primary"
+            <button
+              onClick={onSwitchMode}
+              className="underline underline-offset-4 hover:text-primary font-semibold"
             >
               {isLogin ? "Sign Up" : "Sign In"}
-            </Link>
+            </button>
           </p>
         </CardFooter>
       </Card>
-    </div>
   );
 }
+

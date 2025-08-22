@@ -1,7 +1,9 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
-import { Toaster } from '@/components/ui/toaster';
-import { AppProviders } from '@/contexts/app-providers';
+import { Toaster as OldToaster } from '@/components/ui/toaster';
+import { AuthProvider } from '@/contexts/auth-context';
+import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
   title: 'Feastly',
@@ -28,10 +30,11 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased min-h-screen bg-background">
-        <AppProviders>
+        <AuthProvider>
           {children}
-          <Toaster />
-        </AppProviders>
+          <OldToaster />
+          <Toaster position="bottom-center" />
+        </AuthProvider>
       </body>
     </html>
   );

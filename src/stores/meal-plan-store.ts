@@ -16,10 +16,10 @@ export const useMealPlanStore = create<MealPlanState>((set) => ({
   setMealPlan: (plan) => set({ mealPlan: plan }),
   addRecipe: (newRecipe) =>
     set((state) => {
-      const updatedRecipes = state.mealPlan
-        ? [...state.mealPlan.recipes, newRecipe]
-        : [newRecipe];
-      return { mealPlan: { ...state.mealPlan, recipes: updatedRecipes } };
+      // Create a default meal plan structure if it doesn't exist
+      const currentPlan = state.mealPlan || { recipes: [] };
+      const updatedRecipes = [...currentPlan.recipes, newRecipe];
+      return { mealPlan: { ...currentPlan, recipes: updatedRecipes } };
     }),
   setIsLoading: (loading) => set({ isLoading: loading }),
 }));

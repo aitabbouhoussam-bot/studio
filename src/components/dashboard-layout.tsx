@@ -28,6 +28,7 @@ import {
   CreditCard,
   Refrigerator,
   Sparkles,
+  Loader2,
 } from "lucide-react";
 import { Icons } from "./icons";
 import { Button } from "./ui/button";
@@ -40,18 +41,43 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { AiChefAssistant } from "./dashboard/ai-chef-assistant";
+import { useAuth } from "@/contexts/auth-context";
+import { AuthModal } from "./auth-modal";
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, userProfile, logout, loading } = useAuth();
   const [isAssistantOpen, setIsAssistantOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
+
 
   const isActive = (path: string) => {
     // Exact match for dashboard, startsWith for others
     if (path === "/dashboard") return pathname === path;
     return pathname.startsWith(path);
   };
+  
+  if (loading) {
+     return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) {
+      // This shows the login modal if the user is not authenticated.
+      return <AuthModal isOpen={true} onClose={() => router.push('/')} />;
+  }
+
 
   return (
     <SidebarProvider>
@@ -178,12 +204,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="justify-start w-full group-data-[collapsible=icon]:w-auto group-data-[collapsible=icon]:h-10 p-2">
                   <Avatar className="h-8 w-8">
-                      <AvatarImage src="https://placehold.co/40x40.png" alt="User" />
-                      <AvatarFallback>U</AvatarFallback>
+                      <AvatarImage src={userProfile?.photoURL || ''} alt={userProfile?.displayName || 'User'} />
+                      <AvatarFallback>{userProfile?.displayName?.charAt(0) || 'U'}</AvatarFallback>
                   </Avatar>
                   <div className="ml-2 text-left group-data-[collapsible=icon]:hidden">
-                      <p className="font-medium text-sm">User</p>
-                      <p className="text-xs text-muted-foreground">user@example.com</p>
+                      <p className="font-medium text-sm">{userProfile?.displayName || 'User'}</p>
+                      <p className="text-xs text-muted-foreground">{user?.email}</p>
                   </div>
                    <ChevronDown className="ml-auto h-4 w-4 shrink-0 group-data-[collapsible=icon]:hidden" />
               </Button>
@@ -191,9 +217,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             <DropdownMenuContent className="w-56 mb-2" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">User</p>
+                  <p className="text-sm font-medium leading-none">{userProfile?.displayName || 'User'}</p>
                   <p className="text-xs leading-none text-muted-foreground">
-                    user@example.com
+                    {user?.email}
                   </p>
                 </div>
               </DropdownMenuLabel>
@@ -215,11 +241,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                   </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-               <DropdownMenuItem asChild>
-                  <Link href="/">
+               <DropdownMenuItem onClick={logout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
-                  </Link>
                 </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
