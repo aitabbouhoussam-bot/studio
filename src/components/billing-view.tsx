@@ -19,25 +19,26 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { CreditCard, Download } from "lucide-react";
+import Link from "next/link";
 
 // Mock data for demonstration
 const mockInvoices = [
   {
     invoice: "INV001",
     date: "2023-10-01",
-    amount: "$9.00",
+    amount: "$5.99",
     status: "Paid",
   },
   {
     invoice: "INV002",
     date: "2023-11-01",
-    amount: "$9.00",
+    amount: "$5.99",
     status: "Paid",
   },
   {
     invoice: "INV003",
     date: "2023-12-01",
-    amount: "$9.00",
+    amount: "$5.99",
     status: "Paid",
   },
 ];
@@ -48,16 +49,25 @@ const mockPaymentMethod = {
     expires: "08/26"
 }
 
+// In a real app, this would come from the user's auth state/database
+const mockUserSubscription = {
+    tier: "Premium",
+    price: 5.99,
+    currency: "USD",
+    nextBillingDate: "2024-08-01",
+}
+
+
 export function BillingView() {
   return (
     <div className="space-y-8">
       <Card>
         <CardHeader>
           <CardTitle className="font-headline text-2xl">
-            Billing & Invoices
+            Billing & Subscription
           </CardTitle>
           <CardDescription>
-            Manage your payment methods and view your invoice history.
+            Manage your plan, payment methods, and view your invoice history.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -65,10 +75,12 @@ export function BillingView() {
                 <h3 className="text-lg font-semibold mb-2">Current Plan</h3>
                 <div className="flex items-center justify-between rounded-md border p-4">
                     <div>
-                        <p className="font-medium">Feastly Pro</p>
-                        <p className="text-sm text-muted-foreground">Billed monthly at $9.00</p>
+                        <p className="font-medium">Feastly {mockUserSubscription.tier}</p>
+                        <p className="text-sm text-muted-foreground">Next payment of ${mockUserSubscription.price} on {mockUserSubscription.nextBillingDate}</p>
                     </div>
-                    <Button variant="outline">Manage Subscription</Button>
+                    <Button variant="outline" asChild>
+                      <Link href="/pricing">Manage Subscription</Link>
+                    </Button>
                 </div>
             </div>
              <div>
@@ -82,7 +94,7 @@ export function BillingView() {
                         </div>
                     </div>
                     {/* This would link to the Stripe Customer Portal */}
-                    <Button variant="outline">Manage Payments</Button>
+                    <Button variant="outline">Update Payment</Button>
                 </div>
             </div>
         </CardContent>

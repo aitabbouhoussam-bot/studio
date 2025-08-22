@@ -15,11 +15,12 @@ import { ListTodo, PlusCircle, ArrowRight, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { GenerateRecipeModal } from "@/components/generate-recipe-modal";
 import { AddRecipeModal } from "@/components/add-recipe-modal";
+import { Icons } from "@/components/icons";
 
 const formSchema = z.object({
-  dietaryPreferences: z.string(),
-  allergies: z.string(),
-  calorieIntake: z.coerce.number(),
+  dietaryRestrictions: z.array(z.string()),
+  allergies: z.array(z.string()),
+  dailyCalorieGoal: z.coerce.number(),
   budgetLevel: z.number(),
   defaultServings: z.number(),
   maxCookingTimeMins: z.number(),
@@ -47,7 +48,7 @@ export default function DashboardPage() {
         description: "Your new meal plan has been generated.",
       });
     } else {
-       const isQuotaError = result.error?.includes("quota has been reached");
+       const isQuotaError = result.error?.includes("quota");
        
        toast({
         variant: "destructive",
@@ -61,7 +62,8 @@ export default function DashboardPage() {
                </Button>
             )}
           </div>
-        )
+        ),
+        duration: isQuotaError ? 10000 : 5000,
       });
     }
     setIsLoading(false);

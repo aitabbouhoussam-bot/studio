@@ -48,6 +48,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isAssistantOpen, setIsAssistantOpen] = React.useState(false);
 
   const isActive = (path: string) => {
+    // Exact match for dashboard, startsWith for others
+    if (path === "/dashboard") return pathname === path;
     return pathname.startsWith(path);
   };
 
@@ -68,7 +70,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               <SidebarMenuButton
                 href="/dashboard"
                 asChild
-                isActive={pathname === "/dashboard"}
+                isActive={isActive("/dashboard")}
                 tooltip="Dashboard"
               >
                 <Link href="/dashboard">
@@ -144,10 +146,24 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton
+                href="/dashboard/billing"
+                asChild
+                isActive={isActive("/dashboard/billing")}
+                tooltip="Billing"
+              >
+                <Link href="/dashboard/billing">
+                  <CreditCard />
+                  <span>Billing</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+              <SidebarMenuButton
                 href="/pricing"
                 asChild
                 isActive={isActive("/pricing")}
                 tooltip="Upgrade"
+                className="bg-primary/10 text-primary hover:bg-primary/20 hover:text-primary"
               >
                 <Link href="/pricing">
                   <Crown />
@@ -192,9 +208,11 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     <span>Billing</span>
                   </Link>
                 </DropdownMenuItem>
-              <DropdownMenuItem>
-                  <Crown className="mr-2 h-4 w-4" />
-                  <span>Upgrade</span>
+              <DropdownMenuItem asChild>
+                  <Link href="/pricing">
+                    <Crown className="mr-2 h-4 w-4" />
+                    <span>Upgrade</span>
+                  </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
                <DropdownMenuItem asChild>

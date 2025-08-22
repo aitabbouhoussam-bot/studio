@@ -1,7 +1,14 @@
 
 import { SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Check } from "lucide-react";
 import Link from "next/link";
 
@@ -10,11 +17,12 @@ const tiers = [
     name: "Free",
     price: "$0",
     frequency: "/month",
-    description: "Get started with the basics.",
+    description: "Get started with the basics of AI meal planning.",
     features: [
-      "5 AI meal generations per month",
-      "Standard shopping lists",
-      "Basic recipe saving",
+      "5 AI meal plan generations per month",
+      "Standard recipe search",
+      "Basic shopping lists",
+      "Save up to 10 recipes",
     ],
     cta: "Get Started",
     href: "/signup",
@@ -24,17 +32,19 @@ const tiers = [
     name: "Premium",
     price: "$5.99",
     frequency: "/month",
-    description: "Unlock the full power of Feastly.",
+    description: "Unlock the full power of Feastly for you and your family.",
     features: [
       "Unlimited AI meal plan generations",
-      "Advanced dietary options",
-      "Family collaboration & sharing",
-      "Advanced meal insights",
+      "Advanced dietary options & filters",
+      "Family collaboration & plan sharing",
+      "Smart pantry management",
+      "Grocery list export (CSV, PDF)",
       "Priority support",
     ],
     cta: "Start Free Trial",
     href: "/signup",
     variant: "default" as const,
+    popular: true,
   },
 ];
 
@@ -48,42 +58,50 @@ export default function PricingPage() {
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl font-headline">
-                  Find the perfect plan
+                  Find the perfect plan for you
                 </h1>
                 <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Choose the plan that fits your lifestyle and start your journey to effortless, healthy eating.
+                  Choose the plan that fits your lifestyle and start your
+                  journey to effortless, healthy eating. Cancel anytime.
                 </p>
               </div>
             </div>
             <div className="mx-auto grid max-w-4xl grid-cols-1 gap-8 pt-12 md:grid-cols-2">
               {tiers.map((tier) => (
-                <Card key={tier.name} className={`flex flex-col ${tier.variant === 'default' ? 'border-primary shadow-lg' : ''}`}>
-                   {tier.variant === 'default' && (
-                      <div className="py-2 px-4 bg-primary text-primary-foreground text-center text-sm font-semibold rounded-t-lg">
-                        Most Popular
-                      </div>
-                    )}
-                  <CardHeader>
-                    <CardTitle className="font-headline">{tier.name}</CardTitle>
+                <Card
+                  key={tier.name}
+                  className={`flex flex-col ${
+                    tier.popular ? "border-primary shadow-lg" : ""
+                  }`}
+                >
+                  {tier.popular && (
+                    <div className="py-2 px-4 bg-primary text-primary-foreground text-center text-sm font-semibold rounded-t-lg">
+                      Most Popular
+                    </div>
+                  )}
+                  <CardHeader className="p-6">
+                    <CardTitle className="font-headline text-2xl">{tier.name}</CardTitle>
                     <CardDescription>{tier.description}</CardDescription>
                     <div>
                       <span className="text-4xl font-bold">{tier.price}</span>
-                      <span className="text-muted-foreground">{tier.frequency}</span>
+                      <span className="text-muted-foreground">
+                        {tier.frequency}
+                      </span>
                     </div>
                   </CardHeader>
-                  <CardContent className="flex-1">
-                    <ul className="space-y-2">
+                  <CardContent className="flex-1 px-6 pb-6">
+                    <ul className="space-y-3">
                       {tier.features.map((feature) => (
-                        <li key={feature} className="flex items-center gap-2">
-                          <Check className="h-4 w-4 text-primary" />
+                        <li key={feature} className="flex items-center gap-3">
+                          <Check className="h-5 w-5 text-primary" />
                           <span>{feature}</span>
                         </li>
                       ))}
                     </ul>
                   </CardContent>
-                  <CardFooter>
+                  <CardFooter className="p-6 border-t">
                     <Button asChild className="w-full" variant={tier.variant}>
-                        <Link href={tier.href}>{tier.cta}</Link>
+                      <Link href={tier.href}>{tier.cta}</Link>
                     </Button>
                   </CardFooter>
                 </Card>

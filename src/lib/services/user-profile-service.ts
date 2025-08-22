@@ -29,7 +29,8 @@ const MOCK_USER_DATA = {
       tier: 'free', // Let's make the mock user a free user to test the quota
     },
     aiUsage: {
-      '202407': { mealGenerations: 2 },
+      // Use a dynamic key for the current month, e.g., '202407'
+      [new Date().toISOString().slice(0, 7).replace('-', '')]: { mealGenerations: 0 },
     },
   },
    'pro_user_456': {
@@ -42,7 +43,7 @@ const MOCK_USER_DATA = {
       tier: 'premium',
     },
     aiUsage: {
-      '202407': { mealGenerations: 50 }, // well over the free limit
+      [new Date().toISOString().slice(0, 7).replace('-', '')]: { mealGenerations: 50 }, // well over the free limit
     },
   },
 };
@@ -117,7 +118,7 @@ export async function incrementUsageQuota(uid: string): Promise<void> {
   // to atomically update the count for the current month.
   // e.g., db.collection('users').doc(uid).update({ 'aiUsage.202407.mealGenerations': FieldValue.increment(1) });
   
-  // This mock implementation is not persistent.
+  // This mock implementation is not persistent but demonstrates the logic.
   const user = MOCK_USER_DATA[uid as keyof typeof MOCK_USER_DATA];
   if (user) {
       const currentMonthKey = new Date().toISOString().slice(0, 7).replace('-', '');
