@@ -1,75 +1,69 @@
 
 'use server';
 /**
- * @fileOverview A flow to generate a single recipe based on a text prompt.
+ * @fileOverview A flow to generate a single recipe based on a detailed user profile and prompt.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import { AI_RecipeGeneration_InputSchema, AI_RecipeGeneration_OutputSchema, AI_RecipeGeneration_Input, AI_RecipeGeneration_Output } from '../schemas';
 
-const IngredientSchema = z.object({
-  name: z.string(),
-  quantity: z.number(),
-  unit: z.string(),
-  category: z.enum(['produce', 'protein', 'dairy', 'pantry', 'frozen', 'bakery', 'beverages']),
-});
+const generateRecipeWithAIPrompt = ai.definePrompt({
+    name: 'generateRecipeWithAIPrompt',
+    input: { schema: AI_RecipeGeneration_InputSchema },
+    output: { schema: AI_RecipeGeneration_OutputSchema },
+    prompt: `You are MealGenius-AI, a precision recipe engine.
 
-const NutritionInfoSchema = z.object({
-  calories: z.number(),
-  protein: z.number().describe('in grams'),
-  carbs: z.number().describe('in grams'),
-  fat: z.number().describe('in grams'),
-});
+You will receive a JSON input containing the user's ID, preferences, pantry items, and a specific goal. Your task is to generate a recipe that strictly adheres to all constraints.
 
-const GeneratedRecipeSchema = z.object({
-  title: z.string(),
-  description: z.string().optional(),
-  imageUrl: z.string().url().describe("A URL to a high-quality, vibrant, and appetizing photo of the finished dish."),
-  ingredients: z.array(IngredientSchema),
-  instructions: z.array(z.string()),
-  nutrition: NutritionInfoSchema,
-  prepTimeMins: z.number(),
-  cookTimeMins: z.number(),
-  difficulty: z.enum(['easy', 'medium', 'hard']),
-  tags: z.array(z.string()).optional(),
-});
-export type GeneratedRecipe = z.infer<typeof GeneratedRecipeSchema>;
+USER'S PROMPT: {{{promptText}}}
 
+INPUT CONTEXT:
+\`\`\`json
+{
+  "userId": "{{userId}}",
+  "prefs": {
+    "diet": "{{prefs.diet}}",
+    "allergens": {{#if prefs.allergens}}["{{#each prefs.allergens}}"{{this}}"{{#unless @last}}", "{{/unless}}{{/each}}"]{{else}}[]{{/if}},
+    "calories": {{prefs.calories}},
+    "servings": {{prefs.servings}},
+    "budgetLevel": {{prefs.budgetLevel}}
+  },
+  "pantry": {{#if pantry}}[{{#each pantry}}{"name": "{{name}}", "grams": {{grams}}}{{#unless @last}},{{/unless}}{{/each}}]{{else}}[]{{/if}},
+  "goal": "{{goal}}"
+}
+\`\`\`
 
-const generateRecipePrompt = ai.definePrompt({
-    name: 'generateRecipePrompt',
-    input: { schema: z.string() },
-    output: { schema: GeneratedRecipeSchema },
-    prompt: `You are a creative chef. A user wants a recipe based on this idea: "{{input}}".
+Rules:
+1. Return only **valid JSON** (no markdown fences or extraneous text).
+2. The generated recipe **MUST** exclude all allergens listed in \`prefs.allergens\`. This is a critical safety requirement.
+3. The recipe's calories per serving must be within ±5% of the target defined in \`prefs.calories\`, if provided.
+4. The estimated cost must be appropriate for the \`prefs.budgetLevel\` (1=cheap, 5=expensive).
+5. Prioritize using ingredients from the user's \`pantry\` list. Any ingredients not found in the pantry must be added to the \`shoppingList\`.
+6. Recipe instructions in \`steps\` should be concise (≤ 6 sentences total).
+7. All ingredients in the \`ingredients\` list must specify quantities in grams.
+8. Generate a publicly accessible \`imageUrl\` for the recipe. Use 'https://placehold.co/600x400.png' as a fallback.
 
-CRITICAL REQUIREMENTS:
-1.  Generate exactly ONE creative, delicious, and easy-to-follow recipe.
-2.  Provide a valid and publicly accessible \`imageUrl\` of the finished dish. Use the placeholder service 'https://placehold.co/600x400.png' if a real image is not available.
-3.  Provide accurate nutritional information.
-4.  All ingredients must specify exact quantities, units, and a valid category.
-5.  Instructions must be clear, step-by-step, and easy to follow.
-6.  The 'difficulty' field must be 'easy', 'medium', or 'hard'.
-7.  Categorize each ingredient correctly: 'produce', 'protein', 'dairy', 'pantry', 'frozen', 'bakery', 'beverages'.
-
-Generate the single recipe following the provided JSON output schema exactly.`,
+Produce a JSON object that conforms **exactly** to the specified output schema.
+`,
     config: {
-        temperature: 0.8,
+        temperature: 0.7,
     }
 });
 
 
-export async function generateRecipe(promptText: string): Promise<GeneratedRecipe> {
-  return generateRecipeFlow(promptText);
+export async function generateRecipeWithAI(input: AI_RecipeGeneration_Input): Promise<AI_RecipeGeneration_Output> {
+  return generateRecipeFlow(input);
 }
 
 const generateRecipeFlow = ai.defineFlow(
   {
-    name: 'generateRecipeFlow',
-    inputSchema: z.string(),
-    outputSchema: GeneratedRecipeSchema,
+    name: 'generateRecipeWithAIFlow',
+    inputSchema: AI_RecipeGeneration_InputSchema,
+    outputSchema: AI_RecipeGeneration_OutputSchema,
   },
-  async (promptText) => {
-    const { output } = await generateRecipePrompt(promptText);
+  async (input) => {
+    const { output } = await generateRecipeWithAIPrompt(input);
     return output!;
   }
 );

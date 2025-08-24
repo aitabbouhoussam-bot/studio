@@ -28,12 +28,11 @@ import { useToast } from "@/hooks/use-toast";
 import { Icons } from "./icons";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { generateRecipeAction, saveGeneratedRecipeAction } from "@/lib/recipe-actions";
-import type { GeneratedRecipe } from "@/ai/flows/generate-recipe-flow";
+import type { AI_RecipeGeneration_Output, Recipe } from "@/ai/schemas";
 import { Badge } from "./ui/badge";
 import { ScrollArea } from "./ui/scroll-area";
 import { Sparkles, Save, Redo } from "lucide-react";
 import { useMealPlanStore } from "@/stores/meal-plan-store";
-import type { Recipe } from "@/ai/schemas";
 import { Skeleton } from "./ui/skeleton";
 
 
@@ -69,7 +68,7 @@ export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProp
   const { addRecipe } = useMealPlanStore();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [generatedRecipe, setGeneratedRecipe] = useState<GeneratedRecipe | null>(null);
+  const [generatedOutput, setGeneratedOutput] = useState<AI_RecipeGeneration_Output | null>(null);
 
   const form = useForm<GenerateFormValues>({
     resolver: zodResolver(formSchema),
@@ -80,12 +79,12 @@ export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProp
 
   const handleGenerate = async (values: GenerateFormValues) => {
     setIsLoading(true);
-    setGeneratedRecipe(null);
+    setGeneratedOutput(null);
     const result = await generateRecipeAction(values);
     setIsLoading(false);
 
     if (result.success && result.data) {
-      setGeneratedRecipe(result.data);
+      setGeneratedOutput(result.data);
     } else {
       toast({
         variant: "destructive",
@@ -96,27 +95,20 @@ export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProp
   };
 
   const handleSave = async () => {
-    if (!generatedRecipe) return;
+    if (!generatedOutput || !generatedOutput.recipe) return;
     setIsSaving(true);
     
-    // Convert GeneratedRecipe to the meal plan Recipe schema
-    const recipeForPlan: Recipe = {
-      ...generatedRecipe,
-      day: 'Monday', // Assign a default day, user can change later
-      mealType: 'dinner', // Assign a default meal type
-    };
-    
-    // Add to our front-end state
-    addRecipe(recipeForPlan);
-
-    // Also call the "backend" action which just simulates a save
-    const result = await saveGeneratedRecipeAction(generatedRecipe);
+    // The save action now handles the conversion
+    const result = await saveGeneratedRecipeAction(generatedOutput);
     setIsSaving(false);
 
-     if (result.success) {
+     if (result.success && result.convertedRecipe) {
+      // Add the converted recipe to the frontend store
+      addRecipe(result.convertedRecipe);
+
       toast({
         title: "Recipe Saved!",
-        description: `"${generatedRecipe.title}" has been saved to your library.`,
+        description: `"${result.convertedRecipe.title}" has been saved to your library.`,
       });
       handleClose();
     } else {
@@ -130,7 +122,7 @@ export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProp
   
   const handleClose = () => {
     form.reset();
-    setGeneratedRecipe(null);
+    setGeneratedOutput(null);
     onClose();
   }
 
@@ -140,6 +132,8 @@ export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProp
         handleGenerate({ prompt: currentPrompt });
     }
   }
+  
+  const recipe = generatedOutput?.recipe;
 
 
   return (
@@ -148,7 +142,7 @@ export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProp
         <DialogHeader>
           <DialogTitle className="font-headline text-2xl">Generate New Recipe with AI</DialogTitle>
           <DialogDescription>
-            Have an idea for a dish? Describe it below and let AI create the recipe for you.
+            Have an idea for a dish? Describe it below and let our AI chef create the recipe for you.
           </DialogDescription>
         </DialogHeader>
         
@@ -178,42 +172,39 @@ export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProp
         <ScrollArea className="max-h-[55vh] p-1 pr-4">
             {isLoading && <LoadingSkeleton /> }
             
-            {generatedRecipe && (
+            {recipe && (
                 <div className="space-y-6 animate-in fade-in">
                     <div className="relative h-64 w-full rounded-md overflow-hidden border">
                         <Image
-                            src={generatedRecipe.imageUrl || "https://placehold.co/600x400.png"}
+                            src={recipe.imageUrl || "https://placehold.co/600x400.png"}
                             fill
                             className="object-cover"
-                            alt={generatedRecipe.title}
+                            alt={recipe.name}
                             data-ai-hint="recipe food"
                         />
                     </div>
-                    <h3 className="text-2xl font-bold font-headline">{generatedRecipe.title}</h3>
-                     {generatedRecipe.description && (
-                        <p className="text-muted-foreground">{generatedRecipe.description}</p>
-                    )}
+                    <h3 className="text-2xl font-bold font-headline">{recipe.name}</h3>
+
                      <div className="flex flex-wrap gap-2">
-                        <Badge variant="outline" className="capitalize">{generatedRecipe.difficulty}</Badge>
-                        <Badge variant="secondary">{generatedRecipe.cookTimeMins + generatedRecipe.prepTimeMins} min</Badge>
-                        {generatedRecipe.tags?.map(tag => <Badge key={tag} variant="secondary" className="capitalize">{tag}</Badge>)}
+                        <Badge variant="outline">{recipe.timeMinutes} min</Badge>
+                        <Badge variant="secondary">~${recipe.costUSD.toFixed(2)} per serving</Badge>
                     </div>
                     <div className="grid md:grid-cols-2 gap-6">
                         <div>
                             <h4 className="font-headline text-lg mb-2 text-primary">Ingredients</h4>
                             <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                                {generatedRecipe.ingredients.map((ing, i) => (
-                                <li key={i}>{ing.quantity} {ing.unit} {ing.name}</li>
+                                {recipe.ingredients.map((ing, i) => (
+                                <li key={i}>{ing.grams}g {ing.name}</li>
                                 ))}
                             </ul>
                         </div>
                         <div>
                             <h4 className="font-headline text-lg mb-2 text-primary">Nutrition Facts</h4>
                             <div className="space-y-1 text-sm text-muted-foreground">
-                                <p><strong>Calories:</strong> {generatedRecipe.nutrition.calories} kcal</p>
-                                <p><strong>Protein:</strong> {generatedRecipe.nutrition.protein}g</p>
-                                <p><strong>Carbs:</strong> {generatedRecipe.nutrition.carbs}g</p>
-                                <p><strong>Fat:</strong> {generatedRecipe.nutrition.fat}g</p>
+                                <p><strong>Calories:</strong> {recipe.caloriesPerServing} kcal</p>
+                                <p><strong>Protein:</strong> {recipe.macros.protein}g</p>
+                                <p><strong>Carbs:</strong> {recipe.macros.carbs}g</p>
+                                <p><strong>Fat:</strong> {recipe.macros.fat}g</p>
                             </div>
                         </div>
                     </div>
@@ -221,13 +212,13 @@ export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProp
                     <div>
                         <h4 className="font-headline text-lg mb-2 text-primary">Cooking Instructions</h4>
                         <ol className="list-decimal list-inside space-y-2">
-                            {generatedRecipe.instructions.map((step, i) => <li key={i}>{step}</li>)}
+                            {recipe.steps.map((step, i) => <li key={i}>{step}</li>)}
                         </ol>
                     </div>
                 </div>
             )}
 
-            {!isLoading && !generatedRecipe && (
+            {!isLoading && !recipe && (
                 <Alert className="text-center">
                     <Sparkles className="h-4 w-4" />
                     <AlertTitle>Ready to Cook?</AlertTitle>
@@ -245,7 +236,7 @@ export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProp
                     Close
                 </Button>
             </DialogClose>
-            {generatedRecipe && (
+            {recipe && (
                  <div className="flex gap-2">
                     <Button variant="secondary" onClick={handleRegenerate} disabled={isLoading}>
                          {isLoading ? <Icons.spinner className="mr-2 h-4 w-4 animate-spin" /> : <Redo className="mr-2 h-4 w-4" />}

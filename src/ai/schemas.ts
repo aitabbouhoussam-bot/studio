@@ -10,14 +10,18 @@
 
 import { z } from 'zod';
 
-const IngredientSchema = z.object({
+// =================================================================================
+// DEPRECATED SCHEMAS (To be removed once all flows are updated)
+// =================================================================================
+
+const OldIngredientSchema = z.object({
   name: z.string(),
   quantity: z.number(),
   unit: z.string(),
   category: z.enum(['produce', 'protein', 'dairy', 'pantry', 'frozen', 'bakery', 'beverages']),
 });
 
-const NutritionInfoSchema = z.object({
+const OldNutritionInfoSchema = z.object({
   calories: z.number(),
   protein: z.number().describe('in grams'),
   carbs: z.number().describe('in grams'),
@@ -30,9 +34,9 @@ export const RecipeSchema = z.object({
   title: z.string(),
   description: z.string().optional(),
   imageUrl: z.string().url().describe("A URL to a high-quality, vibrant, and appetizing photo of the finished dish."),
-  ingredients: z.array(IngredientSchema),
+  ingredients: z.array(OldIngredientSchema),
   instructions: z.array(z.string()),
-  nutrition: NutritionInfoSchema,
+  nutrition: OldNutritionInfoSchema,
   prepTimeMins: z.number(),
   cookTimeMins: z.number(),
   difficulty: z.enum(['easy', 'medium', 'hard']),
@@ -65,3 +69,79 @@ export const RecipeInputSchema = z.object({
     day: z.enum(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']),
     mealType: z.enum(['breakfast', 'lunch', 'dinner']),
 });
+
+
+// =================================================================================
+// PRODUCTION-GRADE SCHEMAS (Based on new design brief)
+// =================================================================================
+
+// -------- Input Schemas --------
+
+const AIPrefsSchema = z.object({
+    diet: z.string().optional(),
+    allergens: z.array(z.string()).optional(),
+    calories: z.number().optional(),
+    servings: z.number().positive(),
+    budgetLevel: z.number().min(1).max(5),
+});
+
+const AIPantryItemSchema = z.object({
+    name: z.string(),
+    grams: z.number(),
+});
+
+export const AI_RecipeGeneration_InputSchema = z.object({
+    userId: z.string(),
+    prefs: AIPrefsSchema,
+    pantry: z.array(AIPantryItemSchema).optional(),
+    goal: z.enum(['single-recipe', 'weekly-plan']),
+    promptText: z.string().describe("The user's text prompt, e.g., 'a spicy vegan noodle soup'.")
+});
+export type AI_RecipeGeneration_Input = z.infer<typeof AI_RecipeGeneration_InputSchema>;
+
+
+// -------- Output Schemas --------
+
+const AIMacrosSchema = z.object({
+    protein: z.number(),
+    carbs: z.number(),
+    fat: z.number(),
+});
+
+const AIIngredientSchema = z.object({
+    name: z.string(),
+    grams: z.number(),
+});
+
+const AIShoppingListItemSchema = z.object({
+    name: z.string(),
+    grams: z.number(),
+    aisle: z.string(),
+});
+
+const AIRecipeSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    servings: z.number(),
+    caloriesPerServing: z.number(),
+    macros: AIMacrosSchema,
+    ingredients: z.array(AIIngredientSchema),
+    steps: z.array(z.string()),
+    costUSD: z.number(),
+    timeMinutes: z.number(),
+    imageUrl: z.string().url().describe("A URL to a high-quality, vibrant, and appetizing photo of the finished dish. Use `https://placehold.co/600x400.png` as a fallback.").optional(),
+});
+export type AIRecipe = z.infer<typeof AIRecipeSchema>;
+
+
+const AIWeeklyPlanSchema = z.object({
+    // Define structure if goal is "weekly-plan"
+    // For now, we can leave it empty as per the prompt example
+});
+
+export const AI_RecipeGeneration_OutputSchema = z.object({
+    recipe: AIRecipe.optional().describe("The generated recipe. This is the primary output for a 'single-recipe' goal."),
+    shoppingList: z.array(AIShoppingListItemSchema),
+    weeklyPlan: z.array(AIWeeklyPlanSchema), // Assuming an array for weekly plan
+});
+export type AI_RecipeGeneration_Output = z.infer<typeof AI_RecipeGeneration_OutputSchema>;
