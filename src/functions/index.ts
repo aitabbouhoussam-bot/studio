@@ -10,19 +10,19 @@ if (!admin.apps.length) {
 }
 const db = admin.firestore();
 
-// Validate Environment for Gemini API Key
-if (!process.env.GEMINI_KEY) {
-    logger.error("❌ FATAL ERROR: GEMINI_KEY environment variable is not set.");
-    throw new Error("FATAL ERROR: GEMINI_KEY environment variable is not set.");
-}
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
-
 export const generateRecipeWithAI = onCall({ cors: true }, async (request) => {
     logger.info("🚀 --- generateRecipeWithAI function triggered ---");
 
-    // This top-level try/catch is the main fix to prevent "internal" errors.
     try {
-        // ✅ Step 1: Authentication Check
+        // ✅ Step 1: Validate Environment for Gemini API Key
+        if (!process.env.GEMINI_KEY) {
+            logger.error("❌ FATAL ERROR: GEMINI_KEY environment variable is not set.");
+            return { success: false, error: "Server configuration error: The GEMINI_KEY is not set." };
+        }
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
+        logger.info("✅ Gemini client initialized.");
+
+        // ✅ Step 2: Authentication Check
         const uid = request.auth?.uid;
         if (!uid) {
             logger.error("❌ Authentication failed: No UID provided in request.", { request });
@@ -30,7 +30,7 @@ export const generateRecipeWithAI = onCall({ cors: true }, async (request) => {
         }
         logger.info(`✅ Authentication successful for user: ${uid}`);
 
-        // ✅ Step 2: Input Validation
+        // ✅ Step 3: Input Validation
         const { goal, promptText, prefs } = request.data;
         logger.info("📋 Received data from client:", { data: request.data });
         if (!goal || !promptText || !prefs) {
@@ -40,7 +40,7 @@ export const generateRecipeWithAI = onCall({ cors: true }, async (request) => {
         logger.info("✅ Input validation successful.");
 
 
-        // ✅ Step 3: Prompt Construction
+        // ✅ Step 4: Prompt Construction
         const model = genAI.getGenerativeModel({
             model: "gemini-1.5-pro",
             generationConfig: {
@@ -97,7 +97,7 @@ Output JSON schema
 
         let data;
        
-        // ✅ Step 4: Call Gemini API and Parse Response
+        // ✅ Step 5: Call Gemini API and Parse Response
         logger.info("🤖 Calling Gemini API...");
         const result = await model.generateContent(prompt);
         const text = result.response.text().trim();
@@ -114,7 +114,7 @@ Output JSON schema
             return { success: false, error: "The AI returned an invalid response. Please try again." };
         }
         
-        // ✅ Step 5: Firestore Writes
+        // ✅ Step 6: Firestore Writes
         logger.info("💾 Starting Firestore operations...");
         const batch = db.batch();
 
