@@ -119,7 +119,7 @@ const AIShoppingListItemSchema = z.object({
     aisle: z.string(),
 });
 
-const AIRecipeSchema = z.object({
+export const AIRecipeSchema = z.object({
     id: z.string(),
     name: z.string(),
     servings: z.number(),
@@ -140,7 +140,7 @@ const AIWeeklyPlanSchema = z.object({
 });
 
 export const AI_RecipeGeneration_OutputSchema = z.object({
-    recipe: AIRecipe.optional().describe("The generated recipe. This is the primary output for a 'single-recipe' goal."),
+    recipe: AIRecipeSchema.optional().describe("The generated recipe. This is the primary output for a 'single-recipe' goal."),
     shoppingList: z.array(AIShoppingListItemSchema),
     weeklyPlan: z.array(AIWeeklyPlanSchema), // Assuming an array for weekly plan
 });
