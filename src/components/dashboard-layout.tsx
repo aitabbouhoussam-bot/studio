@@ -29,7 +29,6 @@ import {
   Refrigerator,
   Sparkles,
   Loader2,
-  MessageSquare,
 } from "lucide-react";
 import { Icons } from "./icons";
 import { Button } from "./ui/button";
@@ -43,14 +42,12 @@ import {
 } from "./ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { usePathname, useRouter } from "next/navigation";
-import { AiChefAssistant } from "./dashboard/ai-chef-assistant";
 import { useAuth } from "@/contexts/auth-context";
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, userProfile, logout, loading } = useAuth();
-  const [isAssistantOpen, setIsAssistantOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (loading) return; // Wait until loading is finished
@@ -115,19 +112,6 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <Link href="/dashboard">
                   <LayoutDashboard />
                   <span>Dashboard</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                href="/dashboard/chat"
-                asChild
-                isActive={isActive("/dashboard/chat")}
-                tooltip="AI Chat"
-              >
-                <Link href="/dashboard/chat">
-                  <MessageSquare />
-                  <span>AI Chat</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -282,15 +266,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             {pathname.split("/").pop()?.replace("-", " ") || "Dashboard"}
           </h1>
           <div>
-            <Button variant="outline" size="sm" onClick={() => setIsAssistantOpen(true)}>
-              <Sparkles className="mr-2 h-4 w-4 text-primary" />
-              AI Chef Assistant
-            </Button>
           </div>
         </header>
         <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
       </SidebarInset>
-      <AiChefAssistant isOpen={isAssistantOpen} onOpenChange={setIsAssistantOpen} />
     </SidebarProvider>
   );
 }
