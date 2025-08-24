@@ -27,13 +27,15 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Icons } from "./icons";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
-import { generateRecipeAction, saveGeneratedRecipeAction } from "@/lib/recipe-actions";
+import { saveGeneratedRecipeAction } from "@/lib/recipe-actions";
 import type { AI_RecipeGeneration_Output, Recipe } from "@/ai/schemas";
 import { Badge } from "./ui/badge";
 import { ScrollArea } from "./ui/scroll-area";
 import { Sparkles, Save, Redo } from "lucide-react";
 import { useMealPlanStore } from "@/stores/meal-plan-store";
 import { Skeleton } from "./ui/skeleton";
+import { functions } from "@/lib/firebase";
+import { httpsCallable } from "firebase/functions";
 
 
 const formSchema = z.object({
@@ -80,17 +82,43 @@ export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProp
   const handleGenerate = async (values: GenerateFormValues) => {
     setIsLoading(true);
     setGeneratedOutput(null);
-    const result = await generateRecipeAction(values);
-    setIsLoading(false);
+    try {
+        const generateRecipeWithAI = httpsCallable(functions, 'generateRecipeWithAI');
+        
+        // Construct the detailed input for the new flow using mock/default data
+        const inputForAI = {
+            goal: 'single-recipe' as const,
+            promptText: values.prompt,
+            prefs: {
+                diet: "vegetarian",
+                allergens: [],
+                calories: 2000,
+                servings: 2,
+                budgetLevel: 3,
+            },
+            pantry: [
+                { name: "quinoa", grams: 300 },
+                { name: "spinach", grams: 200 },
+            ],
+        };
 
-    if (result.success && result.data) {
-      setGeneratedOutput(result.data);
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Error generating recipe",
-        description: result.error || "An unknown error occurred.",
-      });
+        const result = await generateRecipeWithAI(inputForAI);
+        const data = result.data as AI_RecipeGeneration_Output;
+
+        if (!data || !data.recipe) {
+             throw new Error("AI returned an empty or invalid response.");
+        }
+        
+        setGeneratedOutput(data);
+
+    } catch (error) {
+         toast({
+            variant: "destructive",
+            title: "Error generating recipe",
+            description: error instanceof Error ? error.message : "An unknown error occurred.",
+        });
+    } finally {
+        setIsLoading(false);
     }
   };
 
