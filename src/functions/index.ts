@@ -6,29 +6,32 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import * as admin from "firebase-admin";
 import { logger } from "firebase-functions";
 
-// Initialize Firebase Admin SDK
-admin.initializeApp();
+// Step 2: Initialize Firebase Admin SDK safely
+if (!admin.apps.length) {
+    admin.initializeApp();
+}
 const db = admin.firestore();
 
-// Check for Gemini API key on initialization
+// Step 1: Validate Environment for Gemini API Key
 if (!process.env.GEMINI_KEY) {
+    logger.error("FATAL ERROR: GEMINI_KEY environment variable is not set.");
     throw new Error("FATAL ERROR: GEMINI_KEY environment variable is not set.");
 }
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
 
 export const generateRecipeWithAI = onCall({ cors: true }, async (req) => {
-    logger.info("generateRecipeWithAI function triggered.");
+    logger.info("--- generateRecipeWithAI function triggered ---");
 
-    // 1. Authentication Check
-    logger.info("Auth object:", { auth: req.auth });
+    // Step 4: Authentication Check
     const uid = req.auth?.uid;
     if (!uid) {
         logger.error("Authentication failed: No UID provided in request.", { request: req });
-        throw new Error("User not authenticated. Please log in and try again.");
+        // Step 5: Return Structured Error
+        return { success: false, error: "User not authenticated. Please log in and try again." };
     }
     logger.info(`Request received from authenticated user: ${uid}`);
 
-    // 2. Prompt Construction
+    // Prompt Construction
     const model = genAI.getGenerativeModel({
         model: "gemini-1.5-pro",
         generationConfig: {
@@ -43,37 +46,44 @@ export const generateRecipeWithAI = onCall({ cors: true }, async (req) => {
     };
     logger.info("Constructed prompt for Gemini:", { prompt });
 
-    // 3. Call Gemini API
-    const result = await model.generateContent(JSON.stringify(prompt, null, 2));
-    const text = result.response.text().trim();
-    logger.info("Received raw response from Gemini.");
-
-    // 4. JSON Parsing and Validation
-    const clean = text.replace(/```json|```/g, "").trim();
     let data;
     try {
-        data = JSON.parse(clean);
-        logger.info("Successfully parsed JSON response from Gemini.");
-    } catch (e) {
-        logger.error("Failed to parse JSON response from Gemini.", { rawResponse: clean, error: e });
-        throw new Error("The AI returned an invalid response. Please try again.");
+        // Call Gemini API
+        const result = await model.generateContent(JSON.stringify(prompt, null, 2));
+        const text = result.response.text().trim();
+        logger.info("Received raw response from Gemini.", { gptResponse: text });
+
+        // Step 3: Wrap Gemini Response Handling
+        const clean = text.replace(/```json|```/g, "").trim();
+        try {
+            data = JSON.parse(clean);
+            logger.info("Successfully parsed JSON response from Gemini.");
+        } catch (e) {
+            logger.error("Failed to parse JSON response from Gemini.", { rawResponse: clean, error: e });
+            return { success: false, error: "The AI returned an invalid response. Please try again." };
+        }
+    } catch (apiError) {
+        logger.error("Error calling the Gemini API.", { error: apiError });
+        return { success: false, error: "There was an issue contacting the AI service." };
     }
     
-    // 5. Firestore Database Operations
+    // Step 4: Firestore Writes
     try {
         logger.info("Starting Firestore operations...");
         const batch = db.batch();
 
         // Save recipe to subcollection
-        const recipeRef = db.collection("users").doc(uid).collection("recipes").doc(data.recipe.id);
-        batch.set(recipeRef, data.recipe);
-        logger.info(`Batch: Set recipe at ${recipeRef.path}`);
+        if (data.recipe && data.recipe.id) {
+            const recipeRef = db.collection("users").doc(uid).collection("recipes").doc(data.recipe.id);
+            batch.set(recipeRef, data.recipe);
+            logger.info(`Batch: Set recipe at ${recipeRef.path}`);
+        }
 
         // Update shopping list on main user doc
         if (data.shoppingList?.length > 0) {
             const userRef = db.collection("users").doc(uid);
-            batch.update(userRef, { shoppingList: data.shoppingList });
-            logger.info(`Batch: Updated shopping list for user ${uid}`);
+            batch.set(userRef, { shoppingList: data.shoppingList }, { merge: true });
+            logger.info(`Batch: Merged shopping list for user ${uid}`);
         }
 
         // If weekly plan, store it in its own subcollection
@@ -89,10 +99,12 @@ export const generateRecipeWithAI = onCall({ cors: true }, async (req) => {
         await batch.commit();
         logger.info("Firestore batch commit successful.");
 
-    } catch (dbError) {
-        logger.error("Error during Firestore operations:", { error: dbError, data });
-        throw new Error("Failed to save the generated recipe to your account.");
+    } catch (dbError: any) {
+        logger.error("Error during Firestore operations:", { error: dbError, dataForDb: data });
+        // Step 5: Return Structured Error
+        return { success: false, error: "Failed to save the generated recipe to your account." };
     }
 
-    return data;
+    logger.info("--- Function execution completed successfully ---");
+    return { success: true, data: data };
 });
