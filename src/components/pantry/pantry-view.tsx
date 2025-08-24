@@ -5,39 +5,42 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { CategorySection } from "./category-section";
+import { usePantryStore } from "@/stores/pantry-store";
+import { useEffect } from "react";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert";
+import { Refrigerator } from "lucide-react";
 
-// Mock data based on your detailed schema
-const mockPantryItems = [
-  // Produce
-  { id: '1', name: 'Apples', category: 'produce', quantity: 5, unit: 'pieces', expirationDate: new Date(new Date().setDate(new Date().getDate() + 7)), isExpiring: false, isExpired: false, imageUrl: 'https://placehold.co/100x100.png' },
-  { id: '2', name: 'Avocado', category: 'produce', quantity: 2, unit: 'pieces', expirationDate: new Date(new Date().setDate(new Date().getDate() + 2)), isExpiring: true, isExpired: false, imageUrl: 'https://placehold.co/100x100.png' },
-  // Dairy
-  { id: '3', name: 'Milk', category: 'dairy', quantity: 1, unit: 'gallons', expirationDate: new Date(new Date().setDate(new Date().getDate() + 5)), isExpiring: false, isExpired: false, imageUrl: 'https://placehold.co/100x100.png' },
-  { id: '4', name: 'Eggs', category: 'dairy', quantity: 12, unit: 'pieces', expirationDate: new Date(new Date().setDate(new Date().getDate() + 20)), isExpiring: false, isExpired: false, imageUrl: 'https://placehold.co/100x100.png' },
-  { id: '5', name: 'Yogurt', category: 'dairy', quantity: 1, unit: 'pieces', expirationDate: new Date(new Date().setDate(new Date().getDate() - 1)), isExpiring: false, isExpired: true, imageUrl: 'https://placehold.co/100x100.png' },
-  // Pantry
-  { id: '6', name: 'All-Purpose Flour', category: 'pantry', quantity: 1, unit: 'bags', expirationDate: new Date(new Date().setDate(new Date().getDate() + 365)), isExpiring: false, isExpired: false, imageUrl: 'https://placehold.co/100x100.png' },
-  { id: '7', name: 'Olive Oil', category: 'pantry', quantity: 1, unit: 'liters', expirationDate: new Date(new Date().setDate(new Date().getDate() + 730)), isExpiring: false, isExpired: false, imageUrl: 'https://placehold.co/100x100.png' },
-];
+// Mock data has been removed. The component will now use the pantry store.
 
 const categoryConfig = {
   produce: { name: "Produce", icon: "🍎" },
   dairy: { name: "Dairy & Eggs", icon: "🥚" },
-  pantry: { name: "Pantry", icon: "🥫" },
   meat: { name: "Meat & Poultry", icon: "🍗" },
+  pantry: { name: "Pantry", icon: "🥫" },
   frozen: { name: "Frozen", icon: "❄️" },
+  beverages: { name: "Beverages", icon: "🥤" },
+  spices: { name: "Spices & Seasoning", icon: "🌶️" },
+  other: { name: "Other", icon: "📦" },
 };
 
 
 export function PantryView() {
-  const groupedItems = mockPantryItems.reduce((acc, item) => {
+  const { items, initializePantry } = usePantryStore();
+
+  // In a real app, we would fetch from Firestore here.
+  // For now, we'll initialize with some default data to simulate this.
+  useEffect(() => {
+    initializePantry();
+  }, [initializePantry]);
+
+  const groupedItems = items.reduce((acc, item) => {
     const category = item.category || 'other';
     if (!acc[category]) {
       acc[category] = [];
     }
     acc[category].push(item);
     return acc;
-  }, {} as Record<string, typeof mockPantryItems>);
+  }, {} as Record<string, typeof items>);
 
   return (
     <div className="space-y-8">
@@ -51,25 +54,35 @@ export function PantryView() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input placeholder="Search pantry..." className="pl-10" />
             </div>
-          <Button>
+          <Button disabled>
             <PlusCircle className="mr-2 h-4 w-4" />
             Add Item
           </Button>
         </div>
       </div>
       
-      <div className="space-y-6">
-        {Object.entries(groupedItems).map(([category, items]) => (
-          <CategorySection 
-            key={category} 
-            // @ts-ignore
-            title={categoryConfig[category]?.name || 'Other'}
-            // @ts-ignore
-            icon={categoryConfig[category]?.icon || '📦'}
-            items={items}
-          />
-        ))}
-      </div>
+      {items.length === 0 ? (
+        <Alert>
+            <Refrigerator className="h-4 w-4" />
+            <AlertTitle>Your Pantry is Empty</AlertTitle>
+            <AlertDescription>
+              Add items to your pantry to start tracking your inventory and get smart recipe suggestions.
+            </AlertDescription>
+        </Alert>
+      ) : (
+        <div className="space-y-6">
+            {Object.entries(groupedItems).map(([category, categoryItems]) => (
+            <CategorySection 
+                key={category} 
+                // @ts-ignore
+                title={categoryConfig[category]?.name || 'Other'}
+                // @ts-ignore
+                icon={categoryConfig[category]?.icon || '📦'}
+                items={categoryItems}
+            />
+            ))}
+        </div>
+      )}
 
     </div>
   );

@@ -7,18 +7,8 @@ import Image from "next/image";
 import { formatDistanceToNow } from 'date-fns';
 import { Button } from "../ui/button";
 import { MoreVertical } from "lucide-react";
+import type { PantryItem } from "@/stores/pantry-store";
 
-export interface PantryItem {
-  id: string;
-  name: string;
-  category: 'produce' | 'dairy' | 'meat' | 'pantry' | 'frozen' | 'beverages' | 'spices';
-  quantity: number;
-  unit: string;
-  expirationDate: Date;
-  imageUrl?: string;
-  isExpiring: boolean;
-  isExpired: boolean;
-}
 
 interface ItemCardProps {
   item: PantryItem;
@@ -71,7 +61,7 @@ export function ItemCard({ item }: ItemCardProps) {
              </div>
         </CardContent>
          <CardFooter className="p-2 border-t">
-            <Button variant="ghost" size="sm" className="w-full justify-center text-xs text-muted-foreground">
+            <Button variant="ghost" size="sm" className="w-full justify-center text-xs text-muted-foreground" disabled>
                 <MoreVertical className="h-3.5 w-3.5 mr-1" />
                 Details
             </Button>
