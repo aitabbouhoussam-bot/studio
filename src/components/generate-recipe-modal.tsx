@@ -68,7 +68,7 @@ const LoadingSkeleton = () => (
 
 export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProps) {
   const { toast } = useToast();
-  const { userProfile } = useAuth();
+  const { user, userProfile } = useAuth();
   const { addRecipe } = useMealPlanStore();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -82,21 +82,21 @@ export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProp
   });
 
   const handleGenerate = async (values: GenerateFormValues) => {
-    if (!userProfile) {
+    if (!user || !userProfile) {
         toast({
             variant: "destructive",
-            title: "Not Logged In",
-            description: "You must be logged in to generate recipes.",
+            title: "Authentication Error",
+            description: "You must be signed in to generate recipes.",
         });
         return;
     }
 
     setIsLoading(true);
     setGeneratedOutput(null);
+    
+    const generateWithAI = httpsCallable(functions, 'generateRecipeWithAI');
+
     try {
-        const generateRecipeWithAI = httpsCallable(functions, 'generateRecipeWithAI');
-        
-        // Construct the detailed input for the new flow using user profile data
         const inputForAI = {
             goal: 'single-recipe' as const,
             promptText: values.prompt,
@@ -104,8 +104,8 @@ export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProp
                 diet: userProfile.preferences.dietaryRestrictions.join(', '),
                 allergens: userProfile.preferences.allergies,
                 calories: userProfile.preferences.dailyCalorieGoal || 2000,
-                servings: 2, // Defaulting to 2, can be dynamic later
-                budgetLevel: 3, // Defaulting to 3, can be dynamic later
+                servings: userProfile.preferences.familySize || 2,
+                budgetLevel: 3, // This can be made dynamic later
             },
             pantry: [
                 // This would be populated from a pantry store in a full implementation
@@ -114,7 +114,12 @@ export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProp
             ],
         };
 
-        const result = await generateRecipeWithAI(inputForAI);
+        const result: any = await generateWithAI(inputForAI);
+        
+        if (result.data.success === false || result.data.error) {
+            throw new Error(result.data.error || 'The AI failed to generate a recipe.');
+        }
+
         const data = result.data as AI_RecipeGeneration_Output;
 
         if (!data || !data.recipe) {
@@ -123,11 +128,12 @@ export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProp
         
         setGeneratedOutput(data);
 
-    } catch (error) {
-         toast({
+    } catch (error: any) {
+        console.error('Error calling function:', error);
+        toast({
             variant: "destructive",
-            title: "Error generating recipe",
-            description: error instanceof Error ? error.message : "An unknown error occurred.",
+            title: "Error Generating Recipe",
+            description: error.message || "An unknown error occurred. Please check the logs.",
         });
     } finally {
         setIsLoading(false);
@@ -293,5 +299,7 @@ export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProp
     </Dialog>
   );
 }
+
+    
 
     
