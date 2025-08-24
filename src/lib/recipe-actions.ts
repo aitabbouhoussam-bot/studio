@@ -55,12 +55,12 @@ export async function addManualRecipeAction(values: z.infer<typeof manualRecipeS
 
 // The data saved to the meal plan store needs to be converted
 // from the AI output format to the format the UI components expect.
-const convertAIRecipeToMealPlanRecipe = (aiRecipe: AI_RecipeGeneration_Output['recipe']): MealPlanRecipe => {
-    if (!aiRecipe) throw new Error("Cannot convert null AI recipe");
+const convertAIRecipeToMealPlanRecipe = (aiRecipe: AI_RecipeGeneration_Output['recipe']): MealPlanRecipe | null => {
+    if (!aiRecipe) return null;
     
     return {
-        day: 'Monday', // Default value
-        mealType: 'dinner', // Default value
+        day: 'Monday', // Default value, can be changed by user later
+        mealType: 'dinner', // Default value, can be changed by user later
         title: aiRecipe.name,
         description: `A delicious ${aiRecipe.name} with ${aiRecipe.caloriesPerServing} calories per serving.`,
         imageUrl: aiRecipe.imageUrl || "https://placehold.co/600x400.png",
@@ -68,7 +68,7 @@ const convertAIRecipeToMealPlanRecipe = (aiRecipe: AI_RecipeGeneration_Output['r
             name: ing.name,
             quantity: ing.grams,
             unit: 'g', // AI schema uses grams
-            category: 'pantry', // Default category
+            category: 'pantry', // Default category, can be enriched later
         })),
         instructions: aiRecipe.steps,
         nutrition: {
@@ -79,7 +79,7 @@ const convertAIRecipeToMealPlanRecipe = (aiRecipe: AI_RecipeGeneration_Output['r
         },
         prepTimeMins: Math.floor(aiRecipe.timeMinutes * 0.4), // Estimate
         cookTimeMins: Math.floor(aiRecipe.timeMinutes * 0.6), // Estimate
-        difficulty: 'medium', // Default
+        difficulty: 'medium', // Default value
         tags: [aiRecipe.id],
     };
 }
@@ -100,6 +100,10 @@ export async function saveGeneratedRecipeAction(recipeOutput: AI_RecipeGeneratio
         const recipeId = `recipe_${Date.now()}`;
         
         const convertedRecipe = convertAIRecipeToMealPlanRecipe(recipeOutput.recipe);
+
+        if (!convertedRecipe) {
+            throw new Error("Failed to convert AI recipe to meal plan format.");
+        }
 
         return { success: true, recipeId, convertedRecipe };
     } catch (error) {

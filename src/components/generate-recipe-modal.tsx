@@ -36,6 +36,7 @@ import { useMealPlanStore } from "@/stores/meal-plan-store";
 import { Skeleton } from "./ui/skeleton";
 import { functions } from "@/lib/firebase";
 import { httpsCallable } from "firebase/functions";
+import { useAuth } from "@/contexts/auth-context";
 
 
 const formSchema = z.object({
@@ -67,6 +68,7 @@ const LoadingSkeleton = () => (
 
 export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProps) {
   const { toast } = useToast();
+  const { userProfile } = useAuth();
   const { addRecipe } = useMealPlanStore();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -80,23 +82,33 @@ export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProp
   });
 
   const handleGenerate = async (values: GenerateFormValues) => {
+    if (!userProfile) {
+        toast({
+            variant: "destructive",
+            title: "Not Logged In",
+            description: "You must be logged in to generate recipes.",
+        });
+        return;
+    }
+
     setIsLoading(true);
     setGeneratedOutput(null);
     try {
         const generateRecipeWithAI = httpsCallable(functions, 'generateRecipeWithAI');
         
-        // Construct the detailed input for the new flow using mock/default data
+        // Construct the detailed input for the new flow using user profile data
         const inputForAI = {
             goal: 'single-recipe' as const,
             promptText: values.prompt,
             prefs: {
-                diet: "vegetarian",
-                allergens: [],
-                calories: 2000,
-                servings: 2,
-                budgetLevel: 3,
+                diet: userProfile.preferences.dietaryRestrictions.join(', '),
+                allergens: userProfile.preferences.allergies,
+                calories: userProfile.preferences.dailyCalorieGoal || 2000,
+                servings: 2, // Defaulting to 2, can be dynamic later
+                budgetLevel: 3, // Defaulting to 3, can be dynamic later
             },
             pantry: [
+                // This would be populated from a pantry store in a full implementation
                 { name: "quinoa", grams: 300 },
                 { name: "spinach", grams: 200 },
             ],
