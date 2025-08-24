@@ -29,6 +29,7 @@ import {
   Refrigerator,
   Sparkles,
   Loader2,
+  MessageSquare,
 } from "lucide-react";
 import { Icons } from "./icons";
 import { Button } from "./ui/button";
@@ -114,6 +115,19 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <Link href="/dashboard">
                   <LayoutDashboard />
                   <span>Dashboard</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                href="/dashboard/chat"
+                asChild
+                isActive={isActive("/dashboard/chat")}
+                tooltip="AI Chat"
+              >
+                <Link href="/dashboard/chat">
+                  <MessageSquare />
+                  <span>AI Chat</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
