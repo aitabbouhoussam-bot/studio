@@ -1,11 +1,12 @@
 
 'use server';
 /**
- * @fileOverview An advanced meal plan generation flow.
+ * @fileOverview DEPRECATED: This flow is no longer used for recipe generation.
  *
- * This flow takes detailed user preferences, verifies their generation quota,
- * checks a cache for an existing plan, and then calls the AI model to generate
- * a highly structured and validated 7-day meal plan.
+ * This flow was previously used to generate meal plans, but the recipe generation
+ * part of the application has been moved to a dedicated Firebase Cloud Function
+ * in `functions/src/index.ts`. This file is kept for historical context on the
+ * meal plan generation logic but should not be used for generating individual recipes.
  */
 
 import { ai } from '@/ai/genkit';
