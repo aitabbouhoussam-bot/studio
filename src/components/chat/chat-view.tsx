@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef, FormEvent } from "react";
@@ -35,8 +36,10 @@ export function ChatView() {
 
     // Effect to create a new chat session on component mount
     useEffect(() => {
-        const newChatId = user?.uid + "_" + Date.now();
-        setChatId(newChatId);
+        if (user?.uid) {
+          const newChatId = user.uid + "_" + Date.now();
+          setChatId(newChatId);
+        }
     }, [user]);
 
     // Effect to listen for new messages in the current chat session
@@ -62,7 +65,9 @@ export function ChatView() {
                 });
             });
             setMessages(newMessages);
-            setIsLoading(newMessages.length > 0 && newMessages[newMessages.length - 1].status?.state === 'PROCESSING');
+            // Check if the last message is from the model and is still processing
+            const lastMessage = newMessages[newMessages.length - 1];
+            setIsLoading(lastMessage && lastMessage.role === 'model' && lastMessage.status?.state === 'PROCESSING');
         });
 
         return () => unsubscribe();
@@ -87,11 +92,14 @@ export function ChatView() {
         };
 
         setInput("");
+        setIsLoading(true); // Set loading immediately after sending
         
         try {
+            // Directly write to Firestore, which the extension will pick up
             await addDoc(collection(db, `chats/${chatId}/messages`), userMessage);
         } catch (error) {
             console.error("Error sending message:", error);
+            setIsLoading(false);
             // Optionally show an error to the user
         }
     };
@@ -109,6 +117,7 @@ export function ChatView() {
         if (message.status?.state === 'ERRORED') {
             return <p className="text-destructive">An error occurred: {message.status.error}</p>;
         }
+        // Default state for model response before completion
         return <Icons.spinner className="animate-spin" />;
     };
 
@@ -120,7 +129,7 @@ export function ChatView() {
                     AI Chatbot
                 </h1>
                 <p className="text-sm text-muted-foreground">
-                    Powered by the Gemini API Firebase Extension. Chat ID: {chatId}
+                    Powered by the Gemini API Firebase Extension.
                 </p>
             </div>
             <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
@@ -158,6 +167,7 @@ export function ChatView() {
                         </div>
                     ))}
                     {isLoading && messages[messages.length - 1]?.role === 'user' && (
+                         // This shows a spinner on the model side while we wait for the first response chunk
                         <div className="flex items-start gap-3">
                             <Avatar className="h-8 w-8 bg-muted">
                                 <AvatarFallback><Sparkles size={16}/></AvatarFallback>
@@ -185,3 +195,5 @@ export function ChatView() {
         </div>
     );
 }
+
+    
