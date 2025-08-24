@@ -5,48 +5,58 @@
  */
 
 import { z } from 'zod';
+import { auth, db } from './firebase';
+import { collection, query, where, getDocs, doc, writeBatch, arrayUnion, serverTimestamp } from 'firebase/firestore';
 
-const createFamilySchema = z.string().min(2, "Family name must be at least 2 characters.");
-const joinFamilySchema = z.string().min(5, "Invite code must be at least 5 characters.");
+const createFamilySchema = z.string().min(2, "Family name must be at least 2 characters long.");
+const joinFamilySchema = z.string().min(5, "Invite code must be at least 5 characters long.").max(10, "Invalid invite code.");
 
-// Mock "database" for demonstration
-const MOCK_FAMILIES_DB = {
-    'ABCDE': {
-        id: 'fam_existing',
-        name: 'The Sampletons',
-        inviteCode: 'ABCDE',
-        members: [
-             { uid: 'user_owner', displayName: 'Owner User', role: 'owner', photoURL: 'https://placehold.co/40x40.png' },
-        ]
+const generateInviteCode = (length = 6) => {
+    const chars = 'ABCDEFGHIJKLMNPQRSTUVWXYZ123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-};
+    return result;
+}
 
 
 export async function createFamilyAction(name: string) {
   try {
     const validatedName = createFamilySchema.parse(name);
-    // In a real app, you would get the authenticated user's ID
-    const userId = 'user123'; // Mock user ID
+    const user = auth.currentUser;
 
-    console.log(`[FamilyAction] Creating family "${validatedName}" for user ${userId}`);
-
-    // Simulate database operation
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    if (!user) {
+      throw new Error("You must be logged in to create a family.");
+    }
     
+    // Check if user is already in a family
+    const userDocSnap = await getDocs(doc(db, "users", user.uid));
+    if (userDocSnap.data()?.familyId) {
+      throw new Error("You are already in a family.");
+    }
+
+    const batch = writeBatch(db);
+
+    const familyDocRef = doc(collection(db, "families"));
+    const inviteCode = generateInviteCode();
+
     const newFamily = {
-      id: `fam_${Math.random().toString(36).substring(2, 9)}`,
       name: validatedName,
-      inviteCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
-      members: [
-        { uid: userId, displayName: 'You', role: 'owner' as const, photoURL: 'https://placehold.co/40x40.png' },
-      ],
+      ownerId: user.uid,
+      inviteCode: inviteCode,
+      createdAt: serverTimestamp(),
+      members: [{ uid: user.uid, role: 'owner' }]
     };
+    batch.set(familyDocRef, newFamily);
 
-    // Save to our mock DB
-    // @ts-ignore
-    MOCK_FAMILIES_DB[newFamily.inviteCode] = newFamily;
+    const userDocRef = doc(db, "users", user.uid);
+    batch.update(userDocRef, { familyId: familyDocRef.id });
 
-    return { success: true, data: newFamily };
+    await batch.commit();
+
+    return { success: true, data: { ...newFamily, id: familyDocRef.id } };
+
   } catch (error) {
     console.error('[Action Error - Create Family]', error);
     if (error instanceof z.ZodError) {
@@ -61,29 +71,45 @@ export async function createFamilyAction(name: string) {
 export async function joinFamilyAction(inviteCode: string) {
     try {
         const validatedCode = joinFamilySchema.parse(inviteCode);
-        const userId = 'user_joiner_456'; // Mock user ID for the joiner
+        const user = auth.currentUser;
 
-        console.log(`[FamilyAction] User ${userId} attempting to join family with code "${validatedCode}"`);
+        if (!user) {
+            throw new Error("You must be logged in to join a family.");
+        }
+        
+        // Check if user is already in a family
+        const userDocSnap = await getDocs(doc(db, "users", user.uid));
+        if (userDocSnap.data()?.familyId) {
+            throw new Error("You are already in a family.");
+        }
+        
+        const familiesRef = collection(db, "families");
+        const q = query(familiesRef, where("inviteCode", "==", validatedCode.toUpperCase()));
+        const querySnapshot = await getDocs(q);
 
-        // Simulate database operation
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // @ts-ignore
-        const familyToJoin = MOCK_FAMILIES_DB[validatedCode.toUpperCase()];
-
-        if (!familyToJoin) {
-            return { success: false, error: "Invalid invite code." };
+        if (querySnapshot.empty) {
+            return { success: false, error: "Invalid or expired invite code." };
         }
 
-        // Add new member
-        familyToJoin.members.push({
-            uid: userId,
-            displayName: 'You',
-            role: 'member' as const,
-            photoURL: 'https://placehold.co/40x40.png'
+        const familyDoc = querySnapshot.docs[0];
+        const familyData = familyDoc.data();
+        
+        const batch = writeBatch(db);
+        
+        // Add user to the family's members array
+        batch.update(familyDoc.ref, {
+            members: arrayUnion({ uid: user.uid, role: 'member' })
         });
+        
+        // Update the user's profile with the familyId
+        const userDocRef = doc(db, "users", user.uid);
+        batch.update(userDocRef, { familyId: familyDoc.id });
 
-        return { success: true, data: familyToJoin };
+        await batch.commit();
+        
+        const updatedMembers = [...familyData.members, { uid: user.uid, role: 'member' }];
+
+        return { success: true, data: { ...familyData, id: familyDoc.id, members: updatedMembers } };
 
     } catch (error) {
         console.error('[Action Error - Join Family]', error);

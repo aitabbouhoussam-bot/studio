@@ -44,6 +44,7 @@ export interface UserProfile {
   photoURL?: string;
   isGuest: boolean;
   onboardingCompleted: boolean;
+  familyId?: string | null;
   subscription: {
     tier: 'free' | 'premium' | 'family';
     status: 'active' | 'cancelled' | 'expired';
@@ -125,6 +126,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       photoURL: user.photoURL || '',
       isGuest: user.isAnonymous,
       onboardingCompleted: false, // Always false on creation
+      familyId: null,
       subscription: {
         tier: 'premium', // Admins/new users can be premium
         status: 'active'
