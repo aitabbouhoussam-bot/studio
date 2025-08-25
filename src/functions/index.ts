@@ -10,19 +10,25 @@ if (!admin.apps.length) {
 }
 const db = admin.firestore();
 
-// Validate Environment for Gemini API Key
+// Just log the error at the top level, don't throw.
+// Throwing here will prevent the function from deploying or cold-starting correctly.
 if (!process.env.GEMINI_KEY) {
   logger.error("❌ FATAL ERROR: GEMINI_KEY environment variable is not set.");
-  throw new Error("FATAL ERROR: GEMINI_KEY environment variable is not set.");
 }
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
 
 export const generateRecipeWithAI = onCall({ cors: true }, async (request) => {
   logger.info("🚀 --- generateRecipeWithAI function triggered ---");
 
   // 🔥 Top-level try/catch: CATCH ALL
   try {
+    // ✅ Step 0: Environment Variable Check inside the handler
+    if (!process.env.GEMINI_KEY) {
+        logger.error("❌ Function called but GEMINI_KEY is not set.");
+        return { success: false, error: "AI service is temporarily unavailable due to a configuration error." };
+    }
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
+
     // ✅ Step 1: Authentication Check
     const uid = request.auth?.uid;
     if (!uid) {
@@ -96,56 +102,35 @@ Output JSON schema
 
     logger.info("🤖 Constructed prompt for Gemini:", { prompt: prompt.substring(0, 500) + "..." });
 
-    let data;
-
     // ✅ Step 4: Call Gemini API and Parse Response
     logger.info("🤖 Calling Gemini API...");
-    let result;
-    try {
-      result = await model.generateContent(prompt);
-    } catch (apiError: any) {
-      logger.error("❌ Gemini API call failed.", {
-        errorMessage: apiError.message,
-        errorName: apiError.name,
-        errorStack: apiError.stack,
-        requestData: request.data,
-      });
-
-      // Handle specific Google AI errors
-      if (apiError instanceof GoogleGenerativeAIError) {
-        return {
-          success: false,
-          error: `AI service error: ${apiError.message}`,
-        };
-      }
-
-      return {
-        success: false,
-        error: `Failed to generate recipe. AI service is temporarily unavailable. Please try again later.`,
-      };
+    const result = await model.generateContent(prompt);
+    
+    // Check for safety blocks BEFORE trying to access the text
+    logger.info("🛡️ Gemini safety ratings", {
+        safety: result.response.candidates?.[0]?.safetyRatings,
+    });
+    if (!result.response.candidates?.length) {
+        logger.error("❌ No candidates returned from Gemini. Likely blocked content.", { response: result.response });
+        return { success: false, error: "No response generated. The request may have been blocked for safety reasons. Try rephrasing your request." };
     }
 
-    // Now safely extract text
     let text: string;
     try {
-      text = result.response.text().trim();
-      logger.info("🤖 Gemini raw response received.", { gptResponse: text });
+        text = result.response.text().trim();
+        logger.info("🤖 Gemini raw response received.", { gptResponse: text });
     } catch (textError: any) {
-      logger.error("❌ Failed to extract text from Gemini response.", {
-        errorMessage: textError.message,
-        candidate: result.response.candidates?.[0],
-        safetyRatings: result.response.candidates?.[0]?.safetyRatings,
-      });
-      return {
-        success: false,
-        error: "The AI response was blocked or invalid. Please adjust your input and try again.",
-      };
+        logger.error("❌ Failed to extract text from Gemini response. This usually happens if the response was empty or blocked.", { 
+            errorMessage: textError.message,
+            response: result.response 
+        });
+        return { success: false, error: "AI response was empty or blocked. Please adjust your input and try again." };
     }
 
     const clean = text.replace(/```json|```/g, "").trim();
     logger.info("🤖 Cleaned Gemini response.", { cleanedResponse: clean });
 
-    // Parse JSON
+    let data;
     try {
       data = JSON.parse(clean);
       logger.info("✅ Successfully parsed JSON response from Gemini.");
@@ -207,7 +192,7 @@ Output JSON schema
 
     return {
       success: false,
-      error: "An unexpected error occurred. Please try again later.",
+      error: "An unexpected server error occurred. Please try again later.",
     };
   }
 });
