@@ -115,6 +115,9 @@ Output JSON schema
     logger.info("🛡️ Gemini safety ratings", {
         safety: result.response.candidates?.[0]?.safetyRatings,
     });
+    if (result.response.usageMetadata) {
+        logger.info("📊 Token usage", { usage: result.response.usageMetadata });
+    }
     if (!result.response.candidates?.length) {
         logger.error("❌ No candidates returned from Gemini. Likely blocked content.", { response: result.response });
         return { success: false, error: "No response generated. The request may have been blocked for safety reasons. Try rephrasing your request." };
