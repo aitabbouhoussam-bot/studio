@@ -65,6 +65,7 @@ const LoadingSkeleton = () => (
     </div>
 );
 
+type CallableResponse = | { success: true; data: AI_RecipeGeneration_Output } | { success: false; error: string };
 
 export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProps) {
   const { toast } = useToast();
@@ -110,10 +111,11 @@ export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProp
             pantry: [],
         };
 
-        const result: any = await generateWithAI(inputForAI);
+        const result = await generateWithAI(inputForAI);
+        const resultData = result.data as CallableResponse;
         
-        if (result.data.success) {
-            const data = result.data.data as AI_RecipeGeneration_Output;
+        if (resultData.success) {
+            const data = resultData.data;
             if (!data || !data.recipe) {
                  throw new Error("AI returned an empty or invalid response.");
             }
@@ -123,7 +125,7 @@ export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProp
             toast({
                 variant: "destructive",
                 title: "Generation Failed",
-                description: result.data.error || "An unknown error occurred.",
+                description: resultData.error || "An unknown error occurred.",
             });
         }
 
