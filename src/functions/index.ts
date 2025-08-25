@@ -10,13 +10,6 @@ if (!admin.apps.length) {
 }
 const db = admin.firestore();
 
-// Just log the error at the top level, don't throw.
-// Throwing here will prevent the function from deploying or cold-starting correctly.
-if (!process.env.GEMINI_KEY) {
-  logger.error("❌ FATAL ERROR: GEMINI_KEY environment variable is not set.");
-}
-
-
 export const generateRecipeWithAI = onCall({ cors: true }, async (request) => {
   logger.info("🚀 --- generateRecipeWithAI function triggered ---");
 
@@ -36,6 +29,18 @@ export const generateRecipeWithAI = onCall({ cors: true }, async (request) => {
       return { success: false, error: "User not authenticated. Please log in and try again." };
     }
     logger.info(`✅ Authentication successful for user: ${uid}`);
+    
+    // ✅ Step 1.5: Rate Limiting
+    const userDocRef = db.collection("users").doc(uid);
+    const userDoc = await userDocRef.get();
+    const userData = userDoc.data();
+    const lastCall = userData?.lastRecipeRequest;
+
+    if (lastCall && Date.now() - lastCall.toDate().getTime() < 10000) {
+        logger.warn(`User ${uid} rate limited.`);
+        return { success: false, error: "Please wait a moment before requesting another recipe." };
+    }
+
 
     // ✅ Step 2: Input Validation
     const { goal, promptText, prefs } = request.data;
@@ -149,6 +154,11 @@ Output JSON schema
     logger.info("💾 Starting Firestore operations...");
     const batch = db.batch();
 
+    // Update the rate limit timestamp
+    batch.update(userDocRef, { lastRecipeRequest: admin.firestore.FieldValue.serverTimestamp() });
+    logger.info(`💾 Batch: Updated rate limit timestamp for user ${uid}`);
+
+
     if (data && data.recipe && data.recipe.id) {
       const recipeRef = db.collection("users").doc(uid).collection("recipes").doc(data.recipe.id);
       batch.set(recipeRef, data.recipe);
@@ -158,8 +168,7 @@ Output JSON schema
     }
 
     if (data && data.shoppingList && Array.isArray(data.shoppingList) && data.shoppingList.length > 0) {
-      const userRef = db.collection("users").doc(uid);
-      batch.set(userRef, { shoppingList: data.shoppingList }, { merge: true });
+      batch.set(userDocRef, { shoppingList: data.shoppingList }, { merge: true });
       logger.info(`💾 Batch: Merged shopping list for user ${uid}`);
     } else {
       logger.info("🤔 No shopping list data in AI response to save.");
