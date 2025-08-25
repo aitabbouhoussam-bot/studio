@@ -105,35 +105,35 @@ export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProp
                 allergens: userProfile.preferences.allergies,
                 calories: userProfile.preferences.dailyCalorieGoal || 2000,
                 servings: userProfile.preferences.familySize || 2,
-                budgetLevel: 3, // This can be made dynamic later
+                budgetLevel: 3,
             },
-            pantry: [
-                // This would be populated from a pantry store in a full implementation
-                { name: "quinoa", grams: 300 },
-                { name: "spinach", grams: 200 },
-            ],
+            pantry: [],
         };
 
         const result: any = await generateWithAI(inputForAI);
         
-        if (result.data.success === false || result.data.error) {
-            throw new Error(result.data.error || 'The AI failed to generate a recipe.');
+        if (result.data.success) {
+            const data = result.data.data as AI_RecipeGeneration_Output;
+            if (!data || !data.recipe) {
+                 throw new Error("AI returned an empty or invalid response.");
+            }
+            setGeneratedOutput(data);
+        } else {
+            // This handles the structured error from the Cloud Function
+            toast({
+                variant: "destructive",
+                title: "Generation Failed",
+                description: result.data.error || "An unknown error occurred.",
+            });
         }
-
-        const data = result.data as AI_RecipeGeneration_Output;
-
-        if (!data || !data.recipe) {
-             throw new Error("AI returned an empty or invalid response.");
-        }
-        
-        setGeneratedOutput(data);
 
     } catch (error: any) {
+        // This handles network errors or unexpected function crashes
         console.error('Error calling function:', error);
         toast({
             variant: "destructive",
-            title: "Error Generating Recipe",
-            description: error.message || "An unknown error occurred. Please check the logs.",
+            title: "Network Error",
+            description: "Could not connect to the AI service. Please check your connection and try again.",
         });
     } finally {
         setIsLoading(false);
@@ -144,12 +144,10 @@ export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProp
     if (!generatedOutput || !generatedOutput.recipe) return;
     setIsSaving(true);
     
-    // The save action now handles the conversion
     const result = await saveGeneratedRecipeAction(generatedOutput);
     setIsSaving(false);
 
      if (result.success && result.convertedRecipe) {
-      // Add the converted recipe to the frontend store
       addRecipe(result.convertedRecipe);
 
       toast({
@@ -299,7 +297,3 @@ export function GenerateRecipeModal({ isOpen, onClose }: GenerateRecipeModalProp
     </Dialog>
   );
 }
-
-    
-
-    
